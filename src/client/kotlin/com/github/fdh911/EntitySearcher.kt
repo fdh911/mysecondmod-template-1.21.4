@@ -7,21 +7,25 @@ import com.github.fdh911.opengl.GLVertexArray.Attrib.*
 import com.github.fdh911.opengl.GLVertexBuffer
 import imgui.ImGui
 import imgui.type.ImBoolean
-import imgui.type.ImInt
+import imgui.type.ImString
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.Entity
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.joml.times
 import org.lwjgl.opengl.GL45.*
 
 object EntitySearcher {
-    private val redColor = Vector4f(1.0f, 0.0f, 0.0f, 0.4f)
+    private val closeColor = Vector4f(1.0f, 0.0f, 0.0f, 0.4f)
+    private val farColor = Vector4f(0.0f, 0.0f, 1.0f, 0.4f)
     private val enabled = ImBoolean(true)
     private val limitRadius = ImBoolean(false)
     private val lowerBound = intArrayOf(1)
     private val upperBound = intArrayOf(64)
+    private val regexList = mutableListOf<Regex>()
+    private val textModifiersRegex = Regex("\u00A7.")
 
     fun update(ctx: WorldRenderContext) {
         if(!enabled.get()) return
@@ -35,21 +39,43 @@ object EntitySearcher {
         for(entity in entityList) {
             if(entity === player) continue
 
-            if(limitRadius.get()) {
-                val dist = entity.distanceTo(player).toInt()
-                if(dist < lowerBound[0] || upperBound[0] < dist) continue
+            val dist = entity.distanceTo(player).toInt()
+            if(limitRadius.get())
+                if(dist < lowerBound[0] || upperBound[0] < dist)
+                    continue
+
+            if(regexList.isNotEmpty()) {
+                var matches = false
+                val nametag = entity.displayName
+                    ?.string
+                    ?.toString()
+                    ?.replace(textModifiersRegex, "")
+                    ?: continue
+                for(re in regexList)
+                    if(re.matches(nametag)) {
+                        matches = true
+                        break
+                    }
+                if(!matches) continue
             }
 
             val aabb = entity.boundingBox
             val delta = entity.interpolatedPos() - entity.pos.toVector3f()
+            val lerp = (dist - lowerBound[0]).toFloat() / (upperBound[0] - lowerBound[0] + 1)
+            val color = Vector4f(closeColor)
+                .add(Vector4f(farColor).sub(closeColor).mul(lerp))
+
             CuboidRenderer.render(
                 ctx,
                 aabb.minPos.toVector3f() + delta,
                 aabb.maxPos.toVector3f() - aabb.minPos.toVector3f(),
-                redColor
+                color
             )
         }
     }
+
+    private val regexText = ImString()
+    private var selectedRegex = 0
 
     fun renderUI() = UserInterface.render {
         ImGui.begin("Entity Searcher")
@@ -60,6 +86,25 @@ object EntitySearcher {
         if(limitRadius.get()) {
             ImGui.sliderInt("Lower bound", lowerBound, 1, upperBound[0])
             ImGui.sliderInt("Upper bound", upperBound, lowerBound[0], 256)
+        }
+        ImGui.text("Entity name should fit at least one regex:")
+        ImGui.inputText("##", regexText)
+        if(ImGui.button("Add regex")) {
+            val s = regexText.get()
+            if(s.isNotEmpty() && s.isNotBlank())
+                regexList += Regex(s)
+        }
+        if(ImGui.beginListBox("##")) {
+            for(i in regexList.indices) {
+                val re = regexList[i]
+                if(ImGui.selectable(re.toString()))
+                    selectedRegex = i
+            }
+            ImGui.endListBox()
+        }
+        if(ImGui.button("Remove selected regex")) {
+            if(selectedRegex in regexList.indices)
+                regexList.removeAt(selectedRegex)
         }
 
         ImGui.end()
