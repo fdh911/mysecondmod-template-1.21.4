@@ -45,15 +45,40 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
-	implementation "io.github.spair:imgui-java-app:$imguiVersion"
-	implementation "io.github.spair:imgui-java-binding:$imguiVersion"
-	implementation "io.github.spair:imgui-java-lwjgl3:$imguiVersion"
-	implementation "io.github.spair:imgui-java-natives-windows:$imguiVersion"
+	implementation("io.github.spair:imgui-java-app:$imguiVersion") {
+		exclude group: "org.lwjgl"
+	}
 
-	include "io.github.spair:imgui-java-app:$imguiVersion"
-	include "io.github.spair:imgui-java-binding:$imguiVersion"
-	include "io.github.spair:imgui-java-lwjgl3:$imguiVersion"
-	include "io.github.spair:imgui-java-natives-windows:$imguiVersion"
+	implementation("io.github.spair:imgui-java-binding:$imguiVersion") {
+		exclude group: "org.lwjgl"
+	}
+
+	implementation("io.github.spair:imgui-java-lwjgl3:$imguiVersion") {
+		exclude group: "org.lwjgl"
+	}
+
+	implementation("io.github.spair:imgui-java-natives-windows:$imguiVersion") {
+		exclude group: "org.lwjgl"
+	}
+
+	// not sure if this is necessary
+	// since include isnt transitive
+
+	include("io.github.spair:imgui-java-app:$imguiVersion") {
+		exclude group: "org.lwjgl"
+	}
+
+	include("io.github.spair:imgui-java-binding:$imguiVersion") {
+		exclude group: "org.lwjgl"
+	}
+
+	include("io.github.spair:imgui-java-lwjgl3:$imguiVersion") {
+		exclude group: "org.lwjgl"
+	}
+
+	include("io.github.spair:imgui-java-natives-windows:$imguiVersion") {
+		exclude group: "org.lwjgl"
+	}
 }
 
 processResources {

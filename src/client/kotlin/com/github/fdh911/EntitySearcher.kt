@@ -5,6 +5,9 @@ import com.github.fdh911.opengl.GLProgram
 import com.github.fdh911.opengl.GLVertexArray
 import com.github.fdh911.opengl.GLVertexArray.Attrib.*
 import com.github.fdh911.opengl.GLVertexBuffer
+import imgui.ImGui
+import imgui.type.ImBoolean
+import imgui.type.ImInt
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.Entity
@@ -15,8 +18,14 @@ import org.lwjgl.opengl.GL45.*
 
 object EntitySearcher {
     private val redColor = Vector4f(1.0f, 0.0f, 0.0f, 0.4f)
+    private val enabled = ImBoolean(true)
+    private val limitRadius = ImBoolean(false)
+    private val lowerBound = intArrayOf(1)
+    private val upperBound = intArrayOf(64)
 
     fun update(ctx: WorldRenderContext) {
+        if(!enabled.get()) return
+
         val player = MinecraftClient.getInstance().player
             ?: return
 
@@ -26,10 +35,13 @@ object EntitySearcher {
         for(entity in entityList) {
             if(entity === player) continue
 
+            if(limitRadius.get()) {
+                val dist = entity.distanceTo(player).toInt()
+                if(dist < lowerBound[0] || upperBound[0] < dist) continue
+            }
+
             val aabb = entity.boundingBox
-
             val delta = entity.interpolatedPos() - entity.pos.toVector3f()
-
             CuboidRenderer.render(
                 ctx,
                 aabb.minPos.toVector3f() + delta,
@@ -37,6 +49,20 @@ object EntitySearcher {
                 redColor
             )
         }
+    }
+
+    fun renderUI() = UserInterface.render {
+        ImGui.begin("Entity Searcher")
+
+        ImGui.setWindowSize(0.0f, 0.0f)
+        ImGui.checkbox("Enabled?", enabled)
+        ImGui.checkbox("Limit the radius?", limitRadius)
+        if(limitRadius.get()) {
+            ImGui.sliderInt("Lower bound", lowerBound, 1, upperBound[0])
+            ImGui.sliderInt("Upper bound", upperBound, lowerBound[0], 256)
+        }
+
+        ImGui.end()
     }
 
     private fun Entity.interpolatedPos(): Vector3f {
