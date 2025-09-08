@@ -31,6 +31,10 @@ loom {
 
 }
 
+ext {
+	imguiVersion = "1.90.0"
+}
+
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -40,6 +44,11 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
+
+	implementation "io.github.spair:imgui-java-app:$imguiVersion"
+	implementation "io.github.spair:imgui-java-binding:$imguiVersion"
+	implementation "io.github.spair:imgui-java-lwjgl3:$imguiVersion"
+	implementation "io.github.spair:imgui-java-natives-windows:$imguiVersion"
 }
 
 processResources {
