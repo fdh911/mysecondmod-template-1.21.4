@@ -12,7 +12,7 @@ object MySecondModClient : ClientModInitializer {
 			EntitySearcher.update(context)
 			UserInterface.render {
 				ImGui.begin("yo")
-				ImGui.text("hello bro")
+				ImGui.text("hello bro aaaaa")
 				ImGui.end()
 			}
 		}
