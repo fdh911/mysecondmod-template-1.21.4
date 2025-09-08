@@ -8,17 +8,17 @@ import com.github.fdh911.opengl.GLVertexBuffer
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.Entity
-import net.minecraft.util.math.Vec3d
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL45.*
 
 object EntitySearcher {
+    private val redColor = Vector4f(1.0f, 0.0f, 0.0f, 0.4f)
+
     fun update(ctx: WorldRenderContext) {
         val player = MinecraftClient.getInstance().player
-        if(player == null)
-            return
+            ?: return
 
         val entityList = MinecraftClient.getInstance().world?.entities
             ?: return
@@ -28,22 +28,30 @@ object EntitySearcher {
 
             val aabb = entity.boundingBox
 
-            val delta = entity.interpolatedPos().subtract(entity.pos)
+            val delta = entity.interpolatedPos() - entity.pos.toVector3f()
 
-            drawRect(ctx, aabb.minPos.add(delta), aabb.maxPos.add(delta))
+            CuboidRenderer.render(
+                ctx,
+                aabb.minPos.toVector3f() + delta,
+                aabb.maxPos.toVector3f() - aabb.minPos.toVector3f(),
+                redColor
+            )
         }
     }
 
-    private fun Entity.interpolatedPos(): Vec3d {
+    private fun Entity.interpolatedPos(): Vector3f {
         val partialTick = MinecraftClient.getInstance().renderTickCounter!!.getTickDelta(true)
-        return Vec3d(
-            prevX + (x - prevX) * partialTick,
-            prevY + (y - prevY) * partialTick,
-            prevZ + (z - prevZ) * partialTick,
+        return Vector3f(
+            (prevX + (x - prevX) * partialTick).toFloat(),
+            (prevY + (y - prevY) * partialTick).toFloat(),
+            (prevZ + (z - prevZ) * partialTick).toFloat(),
         )
     }
 
-    object RectRender {
+    private operator fun Vector3f.plus(other: Vector3f): Vector3f = add(other)
+    private operator fun Vector3f.minus(other: Vector3f): Vector3f = sub(other)
+
+    private object CuboidRenderer {
         private val vertices = floatArrayOf(
             0.0f, 0.0f, 0.0f,
             1.0f, 0.0f, 0.0f,
@@ -70,19 +78,23 @@ object EntitySearcher {
             1, 6, 5,
         )
 
-        val program = GLProgram("/shaders/poscolor.vert", "/shaders/poscolor.frag").apply { bind() }
+        private val program = GLProgram("/shaders/poscolor.vert", "/shaders/poscolor.frag").apply {
+            bind()
+        }
 
-        val vbo = GLVertexBuffer().apply {
+        private val vbo = GLVertexBuffer().apply {
             bind()
             setData(vertices, GLVertexBuffer.Usage.STATIC)
         }
 
-        val ebo = GLElementBuffer().apply {
+        private val ebo = GLElementBuffer().apply {
             bind()
             setData(indices, GLElementBuffer.Usage.STATIC)
         }
 
-        val vao = GLVertexArray(3 to FLOAT).apply { bind() }
+        private val vao = GLVertexArray(3 to FLOAT).apply {
+            bind()
+        }
 
         init {
             vao.unbind()
@@ -158,17 +170,14 @@ object EntitySearcher {
             }
         }
 
-        fun render(ctx: WorldRenderContext, corner: Vector3f, scale: Vector3f, color: Vector4f) {
-            val player = MinecraftClient.getInstance().player!!
-            val playerPos = player.interpolatedPos().toVector3f()
-
+        fun render(ctx: WorldRenderContext, pos: Vector3f, scale: Vector3f, color: Vector4f) {
             val cam = ctx.camera()
 
             val proj = Matrix4f(ctx.projectionMatrix())
             val view = Matrix4f(ctx.positionMatrix())
-                .translate(cam.pos.toVector3f().sub(playerPos).negate())
+                .translate(cam.pos.toVector3f().negate())
             val model = Matrix4f()
-                .translate(corner.sub(playerPos))
+                .translate(pos)
                 .scale(scale)
 
             val state = GLState.currentState()
@@ -177,9 +186,10 @@ object EntitySearcher {
             glEnable(GL_DEPTH_TEST)
             glDepthFunc(GL_ALWAYS)
             glDisable(GL_CULL_FACE)
+
             program.bind()
+            program.setMat4("uProjView", Matrix4f(proj).mul(view))
             program.setMat4("uModel", model)
-            program.setMat4("uViewProj", proj.mul(view))
             program.setVec4("uColor", color)
             vao.bind()
             vbo.bind()
@@ -188,17 +198,5 @@ object EntitySearcher {
 
             state.restore()
         }
-    }
-
-    private fun drawRect(ctx: WorldRenderContext, minPos: Vec3d, maxPos: Vec3d) {
-        val translate = minPos.toVector3f()
-        val scale = maxPos.subtract(minPos).toVector3f()
-
-        RectRender.render(
-            ctx,
-            translate,
-            scale,
-            Vector4f(1.0f, 0.0f, 0.0f, 0.2f)
-        )
     }
 }
