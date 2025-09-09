@@ -1,9 +1,9 @@
-package com.github.fdh911
+package com.github.fdh911.modules
 
+import com.github.fdh911.io.UserInterface
 import com.github.fdh911.opengl.GLElementBuffer
 import com.github.fdh911.opengl.GLProgram
 import com.github.fdh911.opengl.GLVertexArray
-import com.github.fdh911.opengl.GLVertexArray.Attrib.*
 import com.github.fdh911.opengl.GLVertexBuffer
 import imgui.ImGui
 import imgui.type.ImBoolean
@@ -14,10 +14,13 @@ import net.minecraft.entity.Entity
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.joml.times
-import org.lwjgl.opengl.GL45.*
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL14
+import org.lwjgl.opengl.GL15
+import org.lwjgl.opengl.GL20
+import org.lwjgl.opengl.GL30
 
-object EntitySearcher {
+object EntityScanner {
     private val closeColor = Vector4f(1.0f, 0.0f, 0.0f, 0.4f)
     private val farColor = Vector4f(0.0f, 0.0f, 1.0f, 0.4f)
     private val enabled = ImBoolean(true)
@@ -163,7 +166,7 @@ object EntitySearcher {
             setData(indices, GLElementBuffer.Usage.STATIC)
         }
 
-        private val vao = GLVertexArray(3 to FLOAT).apply {
+        private val vao = GLVertexArray(3 to GLVertexArray.Attrib.FLOAT).apply {
             bind()
         }
 
@@ -197,46 +200,46 @@ object EntitySearcher {
             val ebo: Int
         ) {
             fun restore() {
-                if (blendEnabled) glEnable(GL_BLEND) else glDisable(GL_BLEND)
-                glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha)
-                glBlendEquationSeparate(blendEqRGB, blendEqAlpha)
+                if (blendEnabled) GL11.glEnable(GL11.GL_BLEND) else GL11.glDisable(GL11.GL_BLEND)
+                GL14.glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha)
+                GL20.glBlendEquationSeparate(blendEqRGB, blendEqAlpha)
 
-                if (depthEnabled) glEnable(GL_DEPTH_TEST) else glDisable(GL_DEPTH_TEST)
-                glDepthFunc(depthFunc)
-                glDepthMask(depthMask)
+                if (depthEnabled) GL11.glEnable(GL11.GL_DEPTH_TEST) else GL11.glDisable(GL11.GL_DEPTH_TEST)
+                GL11.glDepthFunc(depthFunc)
+                GL11.glDepthMask(depthMask)
 
-                if (cullEnabled) glEnable(GL_CULL_FACE) else glDisable(GL_CULL_FACE)
-                glFrontFace(frontFace)
-                glCullFace(cullFaceMode)
+                if (cullEnabled) GL11.glEnable(GL11.GL_CULL_FACE) else GL11.glDisable(GL11.GL_CULL_FACE)
+                GL11.glFrontFace(frontFace)
+                GL11.glCullFace(cullFaceMode)
 
-                glUseProgram(program)
-                glBindVertexArray(vao)
-                glBindBuffer(GL_ARRAY_BUFFER, vbo)
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
+                GL20.glUseProgram(program)
+                GL30.glBindVertexArray(vao)
+                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
+                GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, ebo)
             }
 
             companion object {
                 fun currentState() : GLState = GLState(
-                    blendEnabled = glIsEnabled(GL_BLEND),
-                    srcRGB = glGetInteger(GL_BLEND_SRC_RGB),
-                    dstRGB = glGetInteger(GL_BLEND_DST_RGB),
-                    srcAlpha = glGetInteger(GL_BLEND_SRC_ALPHA),
-                    dstAlpha = glGetInteger(GL_BLEND_DST_ALPHA),
-                    blendEqRGB = glGetInteger(GL_BLEND_EQUATION_RGB),
-                    blendEqAlpha = glGetInteger(GL_BLEND_EQUATION_ALPHA),
+                    blendEnabled = GL11.glIsEnabled(GL11.GL_BLEND),
+                    srcRGB = GL11.glGetInteger(GL14.GL_BLEND_SRC_RGB),
+                    dstRGB = GL11.glGetInteger(GL14.GL_BLEND_DST_RGB),
+                    srcAlpha = GL11.glGetInteger(GL14.GL_BLEND_SRC_ALPHA),
+                    dstAlpha = GL11.glGetInteger(GL14.GL_BLEND_DST_ALPHA),
+                    blendEqRGB = GL11.glGetInteger(GL20.GL_BLEND_EQUATION_RGB),
+                    blendEqAlpha = GL11.glGetInteger(GL20.GL_BLEND_EQUATION_ALPHA),
 
-                    depthEnabled = glIsEnabled(GL_DEPTH_TEST),
-                    depthFunc = glGetInteger(GL_DEPTH_FUNC),
-                    depthMask = glGetBoolean(GL_DEPTH_WRITEMASK),
+                    depthEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST),
+                    depthFunc = GL11.glGetInteger(GL11.GL_DEPTH_FUNC),
+                    depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK),
 
-                    cullEnabled = glIsEnabled(GL_CULL_FACE),
-                    frontFace = glGetInteger(GL_FRONT_FACE),
-                    cullFaceMode = glGetInteger(GL_CULL_FACE_MODE),
+                    cullEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE),
+                    frontFace = GL11.glGetInteger(GL11.GL_FRONT_FACE),
+                    cullFaceMode = GL11.glGetInteger(GL11.GL_CULL_FACE_MODE),
 
-                    program = glGetInteger(GL_CURRENT_PROGRAM),
-                    vao = glGetInteger(GL_VERTEX_ARRAY_BINDING),
-                    vbo = glGetInteger(GL_ARRAY_BUFFER_BINDING),
-                    ebo = glGetInteger(GL_ELEMENT_ARRAY_BUFFER_BINDING)
+                    program = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM),
+                    vao = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING),
+                    vbo = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING),
+                    ebo = GL11.glGetInteger(GL15.GL_ELEMENT_ARRAY_BUFFER_BINDING)
                 )
             }
         }
@@ -253,10 +256,10 @@ object EntitySearcher {
 
             val state = GLState.currentState()
 
-            glEnable(GL_BLEND)
-            glEnable(GL_DEPTH_TEST)
-            glDepthFunc(GL_ALWAYS)
-            glDisable(GL_CULL_FACE)
+            GL11.glEnable(GL11.GL_BLEND)
+            GL11.glEnable(GL11.GL_DEPTH_TEST)
+            GL11.glDepthFunc(GL11.GL_ALWAYS)
+            GL11.glDisable(GL11.GL_CULL_FACE)
 
             program.bind()
             program.setMat4("uProjView", Matrix4f(proj).mul(view))
@@ -265,7 +268,7 @@ object EntitySearcher {
             vao.bind()
             vbo.bind()
             ebo.bind()
-            glDrawElements(GL_TRIANGLES, indices.size, GL_UNSIGNED_INT, 0L)
+            GL11.glDrawElements(GL11.GL_TRIANGLES, indices.size, GL11.GL_UNSIGNED_INT, 0L)
 
             state.restore()
         }
