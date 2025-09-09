@@ -18,7 +18,10 @@ object UserInterface {
     init {
         ImGui.createContext()
     }
-    private val io = ImGui.getIO()
+    private val io = ImGui.getIO().apply {
+        iniFilename = null
+        logFilename = null
+    }
     private val fonts = io.fonts.apply {
         addFontDefault()
     }
