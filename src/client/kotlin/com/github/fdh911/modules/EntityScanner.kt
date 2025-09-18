@@ -3,6 +3,7 @@ package com.github.fdh911.modules
 import com.github.fdh911.io.UserInterface
 import com.github.fdh911.opengl.GLElementBuffer
 import com.github.fdh911.opengl.GLProgram
+import com.github.fdh911.opengl.GLState2
 import com.github.fdh911.opengl.GLVertexArray
 import com.github.fdh911.opengl.GLVertexBuffer
 import imgui.ImGui
@@ -16,18 +17,14 @@ import net.minecraft.entity.LivingEntity
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL14
-import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL30
+import org.lwjgl.opengl.GL45.*
 import kotlin.math.pow
 
 object EntityScanner {
     private val closeColor = Vector4f(1.0f, 0.0f, 0.0f, 0.4f)
     private val farColor = Vector4f(0.0f, 0.0f, 1.0f, 0.4f)
 
-    private val enabled = ImBoolean(true)
+    private val enabled = ImBoolean(false)
     private val limitRadius = ImBoolean(false)
     private val saveEntities = ImBoolean(false)
     private val savedEntityList = mutableListOf<Pair<Int, Entity>>()
@@ -211,96 +208,38 @@ object EntityScanner {
             1, 6, 5,
         )
 
-        private val program = GLProgram("/shaders/poscolor.vert", "/shaders/poscolor.frag").apply {
-            bind()
-        }
-
-        private val vbo = GLVertexBuffer().apply {
-            bind()
-            setData(vertices, GLVertexBuffer.Usage.STATIC)
-        }
-
-        private val ebo = GLElementBuffer().apply {
-            bind()
-            setData(indices, GLElementBuffer.Usage.STATIC)
-        }
-
-        private val vao = GLVertexArray(3 to GLVertexArray.Attrib.FLOAT).apply {
-            bind()
-        }
+        private val program: GLProgram
+        private val vbo: GLVertexBuffer
+        private val ebo: GLElementBuffer
+        private val vao: GLVertexArray
 
         init {
+            val state = GLState2().apply { saveAll() }
+
+            program = GLProgram("/shaders/poscolor.vert", "/shaders/poscolor.frag").apply {
+                bind()
+            }
+
+            vbo = GLVertexBuffer().apply {
+                bind()
+                setData(vertices, GLVertexBuffer.Usage.STATIC)
+            }
+
+            ebo = GLElementBuffer().apply {
+                bind()
+                setData(indices, GLElementBuffer.Usage.STATIC)
+            }
+
+            vao = GLVertexArray(3 to GLVertexArray.Attrib.FLOAT).apply {
+                bind()
+            }
+
             vao.unbind()
             vbo.unbind()
             ebo.unbind()
             program.unbind()
-        }
 
-        data class GLState(
-            val blendEnabled: Boolean,
-            val srcRGB: Int,
-            val dstRGB: Int,
-            val srcAlpha: Int,
-            val dstAlpha: Int,
-            val blendEqRGB: Int,
-            val blendEqAlpha: Int,
-
-            val depthEnabled: Boolean,
-            val depthFunc: Int,
-            val depthMask: Boolean,
-
-            val cullEnabled: Boolean,
-            val frontFace: Int,
-            val cullFaceMode: Int,
-
-            val program: Int,
-            val vao: Int,
-            val vbo: Int,
-            val ebo: Int
-        ) {
-            fun restore() {
-                if (blendEnabled) GL11.glEnable(GL11.GL_BLEND) else GL11.glDisable(GL11.GL_BLEND)
-                GL14.glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha)
-                GL20.glBlendEquationSeparate(blendEqRGB, blendEqAlpha)
-
-                if (depthEnabled) GL11.glEnable(GL11.GL_DEPTH_TEST) else GL11.glDisable(GL11.GL_DEPTH_TEST)
-                GL11.glDepthFunc(depthFunc)
-                GL11.glDepthMask(depthMask)
-
-                if (cullEnabled) GL11.glEnable(GL11.GL_CULL_FACE) else GL11.glDisable(GL11.GL_CULL_FACE)
-                GL11.glFrontFace(frontFace)
-                GL11.glCullFace(cullFaceMode)
-
-                GL20.glUseProgram(program)
-                GL30.glBindVertexArray(vao)
-                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
-                GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, ebo)
-            }
-
-            companion object {
-                fun currentState() : GLState = GLState(
-                    blendEnabled = GL11.glIsEnabled(GL11.GL_BLEND),
-                    srcRGB = GL11.glGetInteger(GL14.GL_BLEND_SRC_RGB),
-                    dstRGB = GL11.glGetInteger(GL14.GL_BLEND_DST_RGB),
-                    srcAlpha = GL11.glGetInteger(GL14.GL_BLEND_SRC_ALPHA),
-                    dstAlpha = GL11.glGetInteger(GL14.GL_BLEND_DST_ALPHA),
-                    blendEqRGB = GL11.glGetInteger(GL20.GL_BLEND_EQUATION_RGB),
-                    blendEqAlpha = GL11.glGetInteger(GL20.GL_BLEND_EQUATION_ALPHA),
-
-                    depthEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST),
-                    depthFunc = GL11.glGetInteger(GL11.GL_DEPTH_FUNC),
-                    depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK),
-
-                    cullEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE),
-                    frontFace = GL11.glGetInteger(GL11.GL_FRONT_FACE),
-                    cullFaceMode = GL11.glGetInteger(GL11.GL_CULL_FACE_MODE),
-
-                    program = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM),
-                    vao = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING),
-                    vbo = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING),
-                    ebo = GL11.glGetInteger(GL15.GL_ELEMENT_ARRAY_BUFFER_BINDING)
-                )
-            }
+            state.restoreAll()
         }
 
         fun render(ctx: WorldRenderContext, pos: Vector3f, scale: Vector3f, color: Vector4f) {
@@ -313,12 +252,12 @@ object EntityScanner {
                 .translate(pos)
                 .scale(scale)
 
-            val state = GLState.currentState()
+            val state = GLState2().apply { saveAll() }
 
-            GL11.glEnable(GL11.GL_BLEND)
-            GL11.glEnable(GL11.GL_DEPTH_TEST)
-            GL11.glDepthFunc(GL11.GL_ALWAYS)
-            GL11.glDisable(GL11.GL_CULL_FACE)
+            glEnable(GL_BLEND)
+            glEnable(GL_DEPTH_TEST)
+            glDepthFunc(GL_ALWAYS)
+            glDisable(GL_CULL_FACE)
 
             program.bind()
             program.setMat4("uProjView", Matrix4f(proj).mul(view))
@@ -327,9 +266,9 @@ object EntityScanner {
             vao.bind()
             vbo.bind()
             ebo.bind()
-            GL11.glDrawElements(GL11.GL_TRIANGLES, indices.size, GL11.GL_UNSIGNED_INT, 0L)
+            glDrawElements(GL_TRIANGLES, indices.size, GL_UNSIGNED_INT, 0L)
 
-            state.restore()
+            state.restoreAll()
         }
     }
 }

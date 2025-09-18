@@ -1,6 +1,6 @@
 package com.github.fdh911.io
 
-import com.github.fdh911.opengl.GLState
+import com.github.fdh911.opengl.GLState2
 import imgui.ImGui
 import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
@@ -8,12 +8,6 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.Text
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL14
-import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL30
-import java.nio.ByteBuffer
 
 object UserInterface {
     init {
@@ -35,7 +29,8 @@ object UserInterface {
     }
 
     fun render(block: () -> Unit) {
-        val state = GLState.currentState()
+        val state = GLState2().apply { saveAll() }
+
         imGuiGl3.newFrame()
         imGuiGlfw.newFrame()
         ImGui.newFrame()
@@ -44,7 +39,8 @@ object UserInterface {
 
         ImGui.render()
         imGuiGl3.renderDrawData(ImGui.getDrawData())
-        state.restore()
+
+        state.restoreAll()
     }
 
     object MCScreen : Screen(Text.empty()) {

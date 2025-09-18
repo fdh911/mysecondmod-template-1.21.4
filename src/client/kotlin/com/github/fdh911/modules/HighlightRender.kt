@@ -2,7 +2,7 @@ package com.github.fdh911.modules
 
 import com.github.fdh911.opengl.GLElementBuffer
 import com.github.fdh911.opengl.GLProgram
-import com.github.fdh911.opengl.GLState
+import com.github.fdh911.opengl.GLState2
 import com.github.fdh911.opengl.GLTexture2D
 import com.github.fdh911.opengl.GLVertexArray
 import com.github.fdh911.opengl.GLVertexBuffer
@@ -18,7 +18,7 @@ object HighlightRender {
     private val dsTex: GLTexture2D
 
     init {
-        val state = GLState.currentState()
+        val state = GLState2().apply { saveAll() }
 
         program = GLProgram("/shaders/solid.vert", "/shaders/solid.frag").apply {
             bind()
@@ -56,34 +56,36 @@ object HighlightRender {
         vbo.unbind()
         ebo.unbind()
 
-        state.restore()
+        state.restoreAll()
     }
 
-    private var state: GLState? = null
+    private var state: GLState2? = null
 
     fun renderStart() {
-        state = GLState.currentState()
-        glEnable(GL_STENCIL_TEST)
-        glStencilMask(0xff)
-        glStencilFunc(GL_ALWAYS, 1, 0xff)
-        glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, dsTex.id, 0)
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, "Highlight render")
+        glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, "Begin")
+//        state = GLState.currentState()
+//        glEnable(GL_STENCIL_TEST)
+//        glStencilMask(0xff)
+//        glStencilFunc(GL_ALWAYS, 1, 0xff)
+//        glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE)
+//        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, dsTex.id, 0)
+//        glClear(GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT)
     }
 
     fun renderEnd() {
-        program.bind()
-        vao.bind()
-        vbo.bind()
-        ebo.bind()
-        glDisable(GL_CULL_FACE)
-        glDisable(GL_DEPTH_TEST)
-        glEnable(GL_STENCIL_TEST)
-        glStencilMask(0x00)
-        glStencilFunc(GL_EQUAL, 1, 0xff)
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0L)
-        glStencilMask(0xff)
-        glClear(GL_STENCIL_BUFFER_BIT)
-        glStencilMask(0x00)
-        state?.restore()
+//        program.bind()
+//        vao.bind()
+//        vbo.bind()
+//        ebo.bind()
+//        glDisable(GL_CULL_FACE)
+//        glDisable(GL_DEPTH_TEST)
+//        glEnable(GL_STENCIL_TEST)
+//        glStencilMask(0x00)
+//        glStencilFunc(GL_EQUAL, 1, 0xff)
+//        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0L)
+//        state?.restore()
+        glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, "End")
+        glPopDebugGroup()
     }
 }
