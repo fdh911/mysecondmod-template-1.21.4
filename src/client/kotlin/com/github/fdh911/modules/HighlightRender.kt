@@ -1,12 +1,14 @@
 package com.github.fdh911.modules
 
+import com.github.fdh911.opengl.GLDebug
 import com.github.fdh911.opengl.GLElementBuffer
+import com.github.fdh911.opengl.GLFramebuffer
 import com.github.fdh911.opengl.GLProgram
 import com.github.fdh911.opengl.GLState2
-import com.github.fdh911.opengl.GLTexture2D
 import com.github.fdh911.opengl.GLVertexArray
 import com.github.fdh911.opengl.GLVertexBuffer
 import net.minecraft.client.MinecraftClient
+import org.joml.Vector2f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL45.*
 
@@ -15,46 +17,35 @@ object HighlightRender {
     private val vao: GLVertexArray
     private val vbo: GLVertexBuffer
     private val ebo: GLElementBuffer
-    private val dsTex: GLTexture2D
+    private val fb: GLFramebuffer
 
     init {
         val state = GLState2().apply { saveAll() }
 
-        program = GLProgram("/shaders/solid.vert", "/shaders/solid.frag").apply {
+        program = GLProgram.fromClasspath("entityhl").apply {
             bind()
-            setVec4("uColor", Vector4f(1.0f, 0.0f, 0.0f, 1.0f))
+            setInt("uFbColorAttachment", 0)
+            setVec4("uOverlayColor", Vector4f(1.0f, 0.0f, 0.0f, 0.5f))
         }
 
-        vbo = GLVertexBuffer().apply {
-            bind()
-            setData(floatArrayOf(
-                -1.0f, -1.0f,
-                -1.0f, +1.0f,
-                +1.0f, +1.0f,
-                +1.0f, -1.0f,
-            ), GLVertexBuffer.Usage.STATIC)
-        }
+        vbo = GLVertexBuffer.withStaticVertices(
+            -1.0f, -1.0f,   0.0f, 0.0f,
+            -1.0f, +1.0f,   0.0f, 1.0f,
+            +1.0f, +1.0f,   1.0f, 1.0f,
+            +1.0f, -1.0f,   1.0f, 0.0f,
+        )
 
-        ebo = GLElementBuffer().apply {
-            bind()
-            setData(intArrayOf(
-                0, 1, 2,
-                2, 3, 0,
-            ), GLElementBuffer.Usage.STATIC)
-        }
+        ebo = GLElementBuffer.withStaticIndices(
+            0, 1, 2,
+            2, 3, 0,
+        )
 
-        vao = GLVertexArray(2 to GLVertexArray.Attrib.FLOAT).apply {
-            bind()
-        }
+        vao = GLVertexArray(
+            2 to GLVertexArray.Attrib.FLOAT,
+            2 to GLVertexArray.Attrib.FLOAT,
+        )
 
-        val w = MinecraftClient.getInstance().window.width
-        val h = MinecraftClient.getInstance().window.height
-        dsTex = GLTexture2D(null, w, h, GLTexture2D.Formats.DEPTH24_STENCIL8)
-
-        program.unbind()
-        vao.unbind()
-        vbo.unbind()
-        ebo.unbind()
+        fb = GLFramebuffer.withWindowSize()
 
         state.restoreAll()
     }
@@ -62,30 +53,38 @@ object HighlightRender {
     private var state: GLState2? = null
 
     fun renderStart() {
-        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, "Highlight render")
-        glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, "Begin")
-//        state = GLState.currentState()
-//        glEnable(GL_STENCIL_TEST)
-//        glStencilMask(0xff)
-//        glStencilFunc(GL_ALWAYS, 1, 0xff)
-//        glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE)
-//        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, dsTex.id, 0)
-//        glClear(GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT)
+        GLDebug.marker("Highlight start")
+        state = GLState2().apply { saveAll() }
+
+        fb.bind()
+        fb.clearAll()
     }
 
     fun renderEnd() {
-//        program.bind()
-//        vao.bind()
-//        vbo.bind()
-//        ebo.bind()
-//        glDisable(GL_CULL_FACE)
-//        glDisable(GL_DEPTH_TEST)
-//        glEnable(GL_STENCIL_TEST)
-//        glStencilMask(0x00)
-//        glStencilFunc(GL_EQUAL, 1, 0xff)
-//        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0L)
-//        state?.restore()
-        glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, "End")
-        glPopDebugGroup()
+        state?.saveProgramAndBuffers()
+
+        val wnd = MinecraftClient.getInstance().window
+        program.bind()
+        program.setVec2("uScreenSize", Vector2f(
+            wnd.width.toFloat(),
+            wnd.height.toFloat(),
+        ))
+        vao.bind()
+        vbo.bind()
+        ebo.bind()
+
+        glDisable(GL_CULL_FACE)
+        glDisable(GL_DEPTH_TEST)
+        glDisable(GL_STENCIL_TEST)
+        glEnable(GL_BLEND)
+
+        fb.colorAttachment.bindToTexSlot(0)
+
+        state?.restoreFramebuffer()
+
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0L)
+
+        state?.restoreAll()
+        GLDebug.marker("Highlight end")
     }
 }

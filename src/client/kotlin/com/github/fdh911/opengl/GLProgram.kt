@@ -14,6 +14,13 @@ class GLProgram(
 ) {
     private val id: Int
 
+    companion object {
+        fun fromClasspath(vertName: String, fragName: String = vertName): GLProgram = GLProgram(
+            "/shaders/$vertName.vert",
+            "/shaders/$fragName.frag",
+        )
+    }
+
     init {
         val vertShader = glCreateShader(GL_VERTEX_SHADER)
         val vertSource = readShaderFromClasspath(vertPath)

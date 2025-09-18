@@ -11,6 +11,12 @@ class GLVertexBuffer
         DYNAMIC(GL_DYNAMIC_DRAW)
     }
 
+    companion object {
+        fun withStaticVertices(vararg vertices: Float): GLVertexBuffer = GLVertexBuffer().apply {
+            setData(vertices, Usage.STATIC)
+        }
+    }
+
     val id = glGenBuffers()
 
     fun bind() { glBindBuffer(GL_ARRAY_BUFFER, id) }
@@ -21,23 +27,13 @@ class GLVertexBuffer
         glBufferData(GL_ARRAY_BUFFER, vertices, usage.code)
     }
 
-    fun setData(vertices: FloatArray, usage: Usage) {
-        val stk = MemoryStack.stackPush()
-        try {
-            val buf = stk.mallocFloat(vertices.size).put(vertices).flip()
-            setData(buf, usage)
-        } finally {
-            stk.pop()
-        }
+    fun setData(vertices: FloatArray, usage: Usage) = MemoryStack.stackPush().use { stk ->
+        val buf = stk.mallocFloat(vertices.size).put(vertices).flip()
+        setData(buf, usage)
     }
 
-    fun setData(vertices: List<Float>, usage: Usage) {
-        val stk = MemoryStack.stackPush()
-        try {
-            val buf = stk.mallocFloat(vertices.size).put(vertices.toFloatArray()).flip()
-            setData(buf, usage)
-        } finally {
-            stk.pop()
-        }
+    fun setData(vertices: List<Float>, usage: Usage) = MemoryStack.stackPush().use { stk ->
+        val buf = stk.mallocFloat(vertices.size).put(vertices.toFloatArray()).flip()
+        setData(buf, usage)
     }
 }

@@ -51,8 +51,7 @@ class GLState2 {
         val cullEnabled: Boolean,
         val cullFace: Int,
         val frontFace: Int,
-        val polygonModeFront: Int,
-        val polygonModeBack: Int,
+        val polygonModeFrontAndBack: Int,
         val polygonOffsetFactor: Float,
         val polygonOffsetUnits: Float,
         val polygonOffsetEnabled: Boolean,
@@ -210,14 +209,11 @@ class GLState2 {
         glClearStencil(s.clearValue)
     }
 
-    fun saveRaster() = MemoryStack.stackPush().use { stk ->
+    fun saveRaster() {
         val cullEnabled = glIsEnabled(GL_CULL_FACE)
         val cullFace = glGetInteger(GL_CULL_FACE_MODE)
         val frontFace = glGetInteger(GL_FRONT_FACE)
-        val polygonBuf = stk.mallocInt(2)
-        glGetIntegerv(GL_POLYGON_MODE, polygonBuf)
-        val polygonModeFront = polygonBuf.get(0)
-        val polygonModeBack = polygonBuf.get(1)
+        val polygonModeFrontAndBack = glGetInteger(GL_POLYGON_MODE)
         val polygonOffsetFactor = glGetFloat(GL_POLYGON_OFFSET_FACTOR)
         val polygonOffsetUnits = glGetFloat(GL_POLYGON_OFFSET_UNITS)
         val polyOffsetEnabled = glIsEnabled(GL_POLYGON_OFFSET_FILL)
@@ -228,8 +224,7 @@ class GLState2 {
             cullEnabled = cullEnabled,
             cullFace = cullFace,
             frontFace = frontFace,
-            polygonModeFront = polygonModeFront,
-            polygonModeBack = polygonModeBack,
+            polygonModeFrontAndBack = polygonModeFrontAndBack,
             polygonOffsetFactor = polygonOffsetFactor,
             polygonOffsetUnits = polygonOffsetUnits,
             polygonOffsetEnabled = polyOffsetEnabled,
@@ -243,8 +238,7 @@ class GLState2 {
         helperEnableOrDisable(GL_CULL_FACE, s.cullEnabled)
         glCullFace(s.cullFace)
         glFrontFace(s.frontFace)
-        glPolygonMode(GL_FRONT, s.polygonModeFront)
-        glPolygonMode(GL_BACK, s.polygonModeBack)
+        glPolygonMode(GL_FRONT_AND_BACK, s.polygonModeFrontAndBack)
         helperEnableOrDisable(GL_POLYGON_OFFSET_FILL, s.polygonOffsetEnabled)
         glPolygonOffset(s.polygonOffsetFactor, s.polygonOffsetUnits)
         glLineWidth(s.lineWidth)
@@ -273,13 +267,13 @@ class GLState2 {
 
     fun restoreProgramAndBuffers() {
         val s = programBufferState ?: return
-        glUseProgram(s.program)
-        glBindVertexArray(s.vao)
-        glBindBuffer(GL_ARRAY_BUFFER, s.vbo)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s.ebo)
+        if(s.program == 0 || glIsProgram(s.program)) glUseProgram(s.program)
+        if(s.vbo == 0 || glIsBuffer(s.vbo)) glBindBuffer(GL_ARRAY_BUFFER, s.vbo)
+        if(s.ebo == 0 || glIsBuffer(s.ebo)) glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s.ebo)
+        if(s.vao == 0 || glIsVertexArray(s.vao)) glBindVertexArray(s.vao)
         glActiveTexture(s.activeTexture)
-        glBindTexture(GL_TEXTURE_2D, s.boundTexture2D)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, s.boundTextureCube)
+        if(s.boundTexture2D == 0 || glIsTexture(s.boundTexture2D)) glBindTexture(GL_TEXTURE_2D, s.boundTexture2D)
+        if(s.boundTextureCube == 0 || glIsTexture(s.boundTextureCube)) glBindTexture(GL_TEXTURE_CUBE_MAP, s.boundTextureCube)
     }
 
     fun saveViewportScissor() = MemoryStack.stackPush().use { stk ->

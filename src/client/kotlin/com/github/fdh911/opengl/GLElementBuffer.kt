@@ -11,6 +11,12 @@ class GLElementBuffer
         DYNAMIC(GL_DYNAMIC_DRAW)
     }
 
+    companion object {
+        fun withStaticIndices(vararg indices: Int): GLElementBuffer = GLElementBuffer().apply {
+            setData(indices, Usage.STATIC)
+        }
+    }
+
     val id = glGenBuffers()
 
     fun bind() { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id) }
@@ -21,23 +27,13 @@ class GLElementBuffer
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, usage.code)
     }
 
-    fun setData(indices: IntArray, usage: Usage) {
-        val stk = MemoryStack.stackPush()
-        try {
-            val buf = stk.mallocInt(indices.size).put(indices).flip()
-            setData(buf, usage)
-        } finally {
-            stk.pop()
-        }
+    fun setData(indices: IntArray, usage: Usage) = MemoryStack.stackPush().use { stk ->
+        val buf = stk.mallocInt(indices.size).put(indices).flip()
+        setData(buf, usage)
     }
 
-    fun setData(indices: List<Int>, usage: Usage) {
-        val stk = MemoryStack.stackPush()
-        try {
-            val buf = stk.mallocInt(indices.size).put(indices.toIntArray()).flip()
-            setData(buf, usage)
-        } finally {
-            stk.pop()
-        }
+    fun setData(indices: List<Int>, usage: Usage) = MemoryStack.stackPush().use { stk ->
+        val buf = stk.mallocInt(indices.size).put(indices.toIntArray()).flip()
+        setData(buf, usage)
     }
 }

@@ -23,6 +23,7 @@ public class WorldRendererMixin {
 
     @Inject(at = @At("TAIL"), method = "renderEntities")
     void renderEntities_tail_mysecondmod(MatrixStack matrices, VertexConsumerProvider.Immediate immediate, Camera camera, RenderTickCounter tickCounter, List<Entity> entities, CallbackInfo ci) {
+        immediate.draw();
         HighlightRender.INSTANCE.renderEnd();
     }
 }
