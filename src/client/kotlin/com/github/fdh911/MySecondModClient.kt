@@ -23,7 +23,6 @@ object MySecondModClient : ClientModInitializer {
 		}
 		WorldRenderEvents.END.register {
 			context: WorldRenderContext ->
-//			EntityScanner.update(context)
 			GardenMacro.renderScene(context)
 		}
 		ClientTickEvents.END_CLIENT_TICK.register {
@@ -32,7 +31,6 @@ object MySecondModClient : ClientModInitializer {
 			KeySimulator.update()
 		}
 		UserInterface.MCScreen.onRender {
-//			UserInterface.render(EntityScanner::renderUI)
 			UserInterface.render(GardenMacro::renderUI)
 		}
 	}

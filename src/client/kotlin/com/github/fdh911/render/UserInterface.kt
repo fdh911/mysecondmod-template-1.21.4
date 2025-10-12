@@ -1,6 +1,5 @@
 package com.github.fdh911.render
 
-import com.github.fdh911.render.opengl.GLFramebuffer
 import com.github.fdh911.render.opengl.GLState2
 import imgui.ImGui
 import imgui.flag.ImGuiCond
@@ -9,18 +8,17 @@ import imgui.glfw.ImGuiImplGlfw
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.option.KeyBinding
 import net.minecraft.text.Text
 
 object UserInterface {
     init {
         ImGui.createContext()
     }
-    private val io = ImGui.getIO().apply {
+    private val imguiIO = ImGui.getIO().apply {
         iniFilename = null
         logFilename = null
     }
-    private val fonts = io.fonts.apply {
+    private val fonts = imguiIO.fonts.apply {
         addFontDefault()
     }
     val imGuiGlfw = ImGuiImplGlfw().apply {
@@ -43,8 +41,6 @@ object UserInterface {
         ImGui.render()
         imGuiGl3.renderDrawData(ImGui.getDrawData())
         
-        state.restoreFramebuffer()
-
         state.restoreAll()
     }
 
@@ -70,6 +66,18 @@ object UserInterface {
         private val renderEvents = mutableListOf<() -> Unit>()
 
         fun onRender(action: () -> Unit) = renderEvents.add(action)
+
+        override fun init() {
+            super.init()
+            imguiIO.appAcceptingEvents = true
+            imguiIO.clearEventsQueue()
+        }
+
+        override fun removed() {
+            super.removed()
+            imguiIO.appAcceptingEvents = false
+            imguiIO.clearEventsQueue()
+        }
 
         override fun render(context: DrawContext?, mouseX: Int, mouseY: Int, delta: Float) {
             for(action in renderEvents)
