@@ -1,12 +1,15 @@
-package com.github.fdh911.io
+package com.github.fdh911.render
 
-import com.github.fdh911.opengl.GLState2
+import com.github.fdh911.render.opengl.GLFramebuffer
+import com.github.fdh911.render.opengl.GLState2
 import imgui.ImGui
+import imgui.flag.ImGuiCond
 import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.option.KeyBinding
 import net.minecraft.text.Text
 
 object UserInterface {
@@ -39,8 +42,28 @@ object UserInterface {
 
         ImGui.render()
         imGuiGl3.renderDrawData(ImGui.getDrawData())
+        
+        state.restoreFramebuffer()
 
         state.restoreAll()
+    }
+
+    private var windowStkCount = 0
+
+    fun newWindow(name: String, block: () -> Unit) {
+        if(windowStkCount > 0) {
+            val pos = ImGui.getWindowPos()
+            val size = ImGui.getWindowSize()
+            ImGui.setNextWindowPos(pos.x + size.x, pos.y, ImGuiCond.FirstUseEver)
+        }
+
+        windowStkCount++
+        ImGui.begin(name)
+
+        block()
+
+        ImGui.end()
+        windowStkCount--
     }
 
     object MCScreen : Screen(Text.empty()) {
@@ -49,7 +72,6 @@ object UserInterface {
         fun onRender(action: () -> Unit) = renderEvents.add(action)
 
         override fun render(context: DrawContext?, mouseX: Int, mouseY: Int, delta: Float) {
-            super.render(context, mouseX, mouseY, delta)
             for(action in renderEvents)
                 action()
         }

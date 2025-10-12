@@ -1,6 +1,6 @@
 package com.github.fdh911.mixin.client;
 
-import com.github.fdh911.modules.HighlightRender;
+import com.github.fdh911.render.HighlightRender;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.render.VertexConsumerProvider;

@@ -1,8 +1,10 @@
 package com.github.fdh911
 
 import com.github.fdh911.io.Keybinds
-import com.github.fdh911.io.UserInterface
+import com.github.fdh911.render.UserInterface
 import com.github.fdh911.modules.EntityScanner
+import com.github.fdh911.modules.garden.GardenMacro
+import com.github.fdh911.modules.garden.KeySimulator
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
@@ -21,13 +23,17 @@ object MySecondModClient : ClientModInitializer {
 		}
 		WorldRenderEvents.END.register {
 			context: WorldRenderContext ->
-			EntityScanner.update(context)
+//			EntityScanner.update(context)
+			GardenMacro.renderScene(context)
 		}
 		ClientTickEvents.END_CLIENT_TICK.register {
 			Keybinds.update()
+			GardenMacro.update()
+			KeySimulator.update()
 		}
 		UserInterface.MCScreen.onRender {
-			EntityScanner.renderUI()
+//			UserInterface.render(EntityScanner::renderUI)
+			UserInterface.render(GardenMacro::renderUI)
 		}
 	}
 }

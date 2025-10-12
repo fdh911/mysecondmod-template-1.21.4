@@ -1,4 +1,4 @@
-package com.github.fdh911.opengl
+package com.github.fdh911.render.opengl
 
 import org.joml.Matrix4f
 import org.joml.Vector2f

@@ -1,4 +1,4 @@
-package com.github.fdh911.opengl
+package com.github.fdh911.render.opengl
 
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.opengl.GL45.*
@@ -86,13 +86,20 @@ class GLState2 {
         val readFbo: Int,
     )
 
-    private var blendState: BlendState? = null
-    private var depthState: DepthState? = null
-    private var stencilState: StencilState? = null
-    private var rasterState: RasterState? = null
-    private var programBufferState: ProgramBufferState? = null
-    private var viewportScissorState: ViewportScissorState? = null
-    private var fboState: FboState? = null
+    var blendState: BlendState? = null
+        private set
+    var depthState: DepthState? = null
+        private set
+    var stencilState: StencilState? = null
+        private set
+    var rasterState: RasterState? = null
+        private set
+    var programBufferState: ProgramBufferState? = null
+        private set
+    var viewportScissorState: ViewportScissorState? = null
+        private set
+    var fboState: FboState? = null
+        private set
 
     fun saveBlend() = MemoryStack.stackPush().use { stk ->
         val colorMaskBuf = stk.malloc(4)
