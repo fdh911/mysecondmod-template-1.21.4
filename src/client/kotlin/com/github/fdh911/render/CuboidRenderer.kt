@@ -87,6 +87,7 @@ object CuboidRenderer {
         glEnable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)
         glDepthFunc(GL_ALWAYS)
+        glDepthMask(false)
         glDisable(GL_CULL_FACE)
 
         program.bind()

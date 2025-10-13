@@ -19,7 +19,6 @@ import org.joml.Vector4f
 import java.io.File
 import java.util.LinkedList
 import java.util.Queue
-import kotlin.io.path.Path
 import kotlin.math.max
 import kotlin.math.min
 
@@ -45,6 +44,8 @@ object GardenMacro {
     }
 
     fun update() {
+        if(!toggled.get()) return
+
         if(currentScene == null) return
         val scene = currentScene!!
 
@@ -89,6 +90,8 @@ object GardenMacro {
     }
 
     fun renderScene(ctx: WorldRenderContext) {
+        if(!toggled.get()) return
+
         if(currentScene == null) return
         val scene = currentScene!!
         for(node in scene.nodeList) {

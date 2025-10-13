@@ -274,10 +274,10 @@ class GLState2 {
 
     fun restoreProgramAndBuffers() {
         val s = programBufferState ?: return
-        if(s.program == 0 || glIsProgram(s.program)) glUseProgram(s.program)
+        if(s.vao == 0 || glIsVertexArray(s.vao)) glBindVertexArray(s.vao)
         if(s.vbo == 0 || glIsBuffer(s.vbo)) glBindBuffer(GL_ARRAY_BUFFER, s.vbo)
         if(s.ebo == 0 || glIsBuffer(s.ebo)) glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s.ebo)
-        if(s.vao == 0 || glIsVertexArray(s.vao)) glBindVertexArray(s.vao)
+        if(s.program == 0 || glIsProgram(s.program)) glUseProgram(s.program)
         glActiveTexture(s.activeTexture)
         if(s.boundTexture2D == 0 || glIsTexture(s.boundTexture2D)) glBindTexture(GL_TEXTURE_2D, s.boundTexture2D)
         if(s.boundTextureCube == 0 || glIsTexture(s.boundTextureCube)) glBindTexture(GL_TEXTURE_CUBE_MAP, s.boundTextureCube)

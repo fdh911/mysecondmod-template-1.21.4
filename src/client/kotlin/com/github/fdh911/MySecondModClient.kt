@@ -23,9 +23,13 @@ object MySecondModClient : ClientModInitializer {
 		}
 		WorldRenderEvents.END.register {
 			context: WorldRenderContext ->
+			if(mc.player == null || mc.world == null)
+				return@register
 			GardenMacro.renderScene(context)
 		}
 		ClientTickEvents.END_CLIENT_TICK.register {
+			if(mc.player == null || mc.world == null)
+				return@register
 			Keybinds.update()
 			GardenMacro.update()
 			KeySimulator.update()
