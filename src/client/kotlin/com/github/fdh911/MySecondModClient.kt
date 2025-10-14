@@ -5,6 +5,7 @@ import com.github.fdh911.render.UserInterface
 import com.github.fdh911.modules.EntityScanner
 import com.github.fdh911.modules.garden.GardenMacro
 import com.github.fdh911.modules.garden.KeySimulator
+import com.github.fdh911.modules.garden.MouseLock
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
@@ -33,6 +34,7 @@ object MySecondModClient : ClientModInitializer {
 			Keybinds.update()
 			GardenMacro.update()
 			KeySimulator.update()
+			MouseLock.update()
 		}
 		UserInterface.MCScreen.onRender {
 			UserInterface.render(GardenMacro::renderUI)
