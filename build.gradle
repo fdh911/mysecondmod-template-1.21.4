@@ -4,7 +4,7 @@ plugins {
 	id "org.jetbrains.kotlin.jvm" version "2.2.10"
 }
 
-project.mod_version = "1.0.3-alpha"
+project.mod_version = "1.0.4-alpha"
 
 version = project.mod_version
 group = project.maven_group

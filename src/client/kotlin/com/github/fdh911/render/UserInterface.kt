@@ -2,6 +2,7 @@ package com.github.fdh911.render
 
 import com.github.fdh911.render.opengl.GLState2
 import imgui.ImGui
+import imgui.ImVec4
 import imgui.flag.ImGuiCond
 import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
@@ -27,6 +28,70 @@ object UserInterface {
     }
     val imGuiGl3 = ImGuiImplGl3().apply {
         init("#version 150")
+    }
+    init {
+        val colors = arrayOf<ImVec4>(
+            ImVec4(1.00f, 1.00f, 1.00f, 1.00f),
+            ImVec4(0.40f, 0.40f, 0.40f, 1.00f),
+            ImVec4(0.00f, 0.00f, 0.00f, 1.00f),
+            ImVec4(0.00f, 0.00f, 0.00f, 0.00f),
+            ImVec4(0.08f, 0.08f, 0.08f, 0.94f),
+            ImVec4(0.26f, 0.59f, 0.98f, 1.00f),
+            ImVec4(0.00f, 0.00f, 0.00f, 0.00f),
+            ImVec4(0.10f, 0.10f, 0.10f, 1.00f),
+            ImVec4(0.20f, 0.20f, 0.20f, 1.00f),
+            ImVec4(0.26f, 0.59f, 0.98f, 1.00f),
+            ImVec4(0.00f, 0.00f, 0.00f, 1.00f),
+            ImVec4(0.00f, 0.00f, 0.00f, 1.00f),
+            ImVec4(0.00f, 0.00f, 0.00f, 1.00f),
+            ImVec4(0.14f, 0.14f, 0.14f, 1.00f),
+            ImVec4(0.00f, 0.00f, 0.00f, 1.00f),
+            ImVec4(0.31f, 0.31f, 0.31f, 1.00f),
+            ImVec4(0.41f, 0.41f, 0.41f, 1.00f),
+            ImVec4(0.51f, 0.51f, 0.51f, 1.00f),
+            ImVec4(0.26f, 0.59f, 0.98f, 1.00f),
+            ImVec4(0.26f, 0.59f, 0.98f, 1.00f),
+            ImVec4(0.10f, 0.10f, 0.10f, 1.00f),
+            ImVec4(0.10f, 0.10f, 0.10f, 1.00f),
+            ImVec4(0.20f, 0.20f, 0.20f, 1.00f),
+            ImVec4(0.26f, 0.59f, 0.98f, 1.00f),
+            ImVec4(0.10f, 0.10f, 0.10f, 1.00f),
+            ImVec4(0.20f, 0.20f, 0.20f, 1.00f),
+            ImVec4(0.26f, 0.59f, 0.98f, 1.00f),
+            ImVec4(0.10f, 0.10f, 0.10f, 1.00f),
+            ImVec4(0.20f, 0.20f, 0.20f, 1.00f),
+            ImVec4(0.26f, 0.59f, 0.98f, 1.00f),
+            ImVec4(0.10f, 0.10f, 0.10f, 1.00f),
+            ImVec4(0.20f, 0.20f, 0.20f, 1.00f),
+            ImVec4(0.26f, 0.59f, 0.98f, 1.00f),
+            ImVec4(1.00f, 1.00f, 1.00f, 1.00f),
+            ImVec4(0.20f, 0.20f, 0.20f, 1.00f),
+            ImVec4(0.10f, 0.10f, 0.10f, 1.00f),
+            ImVec4(0.26f, 0.59f, 0.98f, 1.00f),
+            ImVec4(0.26f, 0.59f, 0.98f, 1.00f),
+            ImVec4(0.07f, 0.10f, 0.15f, 0.97f),
+            ImVec4(0.14f, 0.26f, 0.42f, 1.00f),
+            ImVec4(0.50f, 0.50f, 0.50f, 0.00f),
+            ImVec4(0.61f, 0.61f, 0.61f, 1.00f),
+            ImVec4(1.00f, 0.43f, 0.35f, 1.00f),
+            ImVec4(0.90f, 0.70f, 0.00f, 1.00f),
+            ImVec4(1.00f, 0.60f, 0.00f, 1.00f),
+            ImVec4(0.19f, 0.19f, 0.20f, 1.00f),
+            ImVec4(0.31f, 0.31f, 0.35f, 1.00f),
+            ImVec4(0.23f, 0.23f, 0.25f, 1.00f),
+            ImVec4(0.00f, 0.00f, 0.00f, 0.00f),
+            ImVec4(1.00f, 1.00f, 1.00f, 0.06f),
+            ImVec4(0.26f, 0.59f, 0.98f, 1.00f),
+            ImVec4(0.26f, 0.59f, 0.98f, 0.35f),
+            ImVec4(0.43f, 0.43f, 0.50f, 0.50f),
+            ImVec4(1.00f, 1.00f, 0.00f, 0.90f),
+            ImVec4(0.26f, 0.59f, 0.98f, 1.00f),
+            ImVec4(1.00f, 1.00f, 1.00f, 0.70f),
+            ImVec4(0.80f, 0.80f, 0.80f, 0.20f),
+            ImVec4(0.80f, 0.80f, 0.80f, 0.35f),
+        )
+
+        ImGui.getStyle().colors = colors
     }
 
     fun render(block: () -> Unit) {
