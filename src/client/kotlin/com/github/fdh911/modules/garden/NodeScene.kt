@@ -53,6 +53,8 @@ class NodeScene(var name: String) {
                             val ms = br.readLine().toInt()
                             NodeActionWait(ImInt(ms))
                         }
+                        "lockMouse" -> NodeActionLockMouse()
+                        "unlockMouse" -> NodeActionUnlockMouse()
                         else -> null
                     }
                     if(action == null)

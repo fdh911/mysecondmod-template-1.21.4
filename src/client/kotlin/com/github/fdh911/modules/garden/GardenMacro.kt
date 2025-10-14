@@ -234,6 +234,10 @@ object GardenMacro {
                             actionToAdd = NodeActionSendMessage()
                         if(ImGui.selectable("Wait"))
                             actionToAdd = NodeActionWait()
+                        if(ImGui.selectable("Lock yaw & pitch"))
+                            actionToAdd = NodeActionLockMouse()
+                        if(ImGui.selectable("Unlock yaw & pitch"))
+                            actionToAdd = NodeActionUnlockMouse()
                         ImGui.endListBox()
                     }
                     if(actionToAdd != null) {

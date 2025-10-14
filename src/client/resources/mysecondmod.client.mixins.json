@@ -5,7 +5,8 @@
 	"client": [
 		"ExampleClientMixin",
 		"WorldRendererMixin",
-		"EntityRenderDispatcherMixin"
+		"EntityRenderDispatcherMixin",
+		"MouseMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
