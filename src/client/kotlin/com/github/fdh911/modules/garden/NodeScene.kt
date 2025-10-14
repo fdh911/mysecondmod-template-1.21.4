@@ -71,6 +71,10 @@ class NodeScene(var name: String) {
 
     fun saveToFile() {
         val file = File("$name.mysecondmod.scene.txt")
+        if(file.exists()) {
+            file.delete()
+            file.createNewFile()
+        }
         file.appendText("$name\n${nodeList.size}\n")
         for(node in nodeList) {
             file.appendText("${node.name}\n")
