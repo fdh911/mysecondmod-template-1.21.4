@@ -82,7 +82,12 @@ object CuboidRenderer {
             .translate(pos)
             .scale(scale)
 
-        val state = GLState2().apply { saveAll() }
+        val stateSave = GLState2().apply {
+            saveBlend()
+            saveDepth()
+            saveRaster()
+            saveProgramAndBuffers()
+        }
 
         glEnable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)
@@ -99,6 +104,11 @@ object CuboidRenderer {
         ebo.bind()
         glDrawElements(GL_TRIANGLES, indices.size, GL_UNSIGNED_INT, 0L)
 
-        state.restoreAll()
+        stateSave.apply {
+            restoreProgramAndBuffers()
+            restoreRaster()
+            restoreDepth()
+            restoreBlend()
+        }
     }
 }

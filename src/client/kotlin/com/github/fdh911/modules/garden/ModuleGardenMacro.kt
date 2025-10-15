@@ -1,9 +1,9 @@
 package com.github.fdh911.modules.garden
 
+import com.github.fdh911.modules.Module
 import com.github.fdh911.render.CuboidRenderer
 import com.github.fdh911.render.UserInterface
 import imgui.ImGui
-import imgui.type.ImBoolean
 import imgui.type.ImInt
 import imgui.type.ImString
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -23,8 +23,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @OptIn(DelicateCoroutinesApi::class)
-object GardenMacro {
-    var toggled = ImBoolean(true)
+object ModuleGardenMacro: Module("Garden Macro") {
     var currentScene: NodeScene? = null
     var currentNode: Node? = null
     private val actionQueue: Queue<INodeAction> = LinkedList()
@@ -32,7 +31,7 @@ object GardenMacro {
     init {
         GlobalScope.launch {
             while(true) {
-                if(!toggled.get() || actionQueue.isEmpty()) {
+                if(!toggled || actionQueue.isEmpty()) {
                     actionQueue.clear()
                     delay(1L)
                     continue
@@ -43,8 +42,8 @@ object GardenMacro {
         }
     }
 
-    fun update() {
-        if(!toggled.get()) return
+    override fun update() {
+        if(!toggled) return
 
         if(currentScene == null) return
         val scene = currentScene!!
@@ -89,8 +88,8 @@ object GardenMacro {
         val scale = Vector3f(1.0f, 1.0f, 1.0f)
     }
 
-    fun renderScene(ctx: WorldRenderContext) {
-        if(!toggled.get()) return
+    override fun renderUpdate(ctx: WorldRenderContext) {
+        if(!toggled) return
 
         if(currentScene == null) return
         val scene = currentScene!!
@@ -125,9 +124,9 @@ object GardenMacro {
         var sceneLoading = false
     }
 
-    fun renderUI() = UserInterface.newWindow("Garden Macro") {
+    override fun renderUI() = UserInterface.newWindow("Garden Macro") {
         ImGui.setWindowSize(0.0f, 0.0f)
-        ImGui.checkbox("Enabled?", toggled)
+        ImGui.checkbox("Enabled?", imBooleanToggled)
         ImGui.separatorText("Scene")
         ImGui.text("Current: ${currentScene?.name ?: "None"}")
         ImGui.setNextItemWidth(-Float.MIN_VALUE)

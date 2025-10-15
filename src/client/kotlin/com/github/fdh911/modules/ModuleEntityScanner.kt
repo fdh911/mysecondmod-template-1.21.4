@@ -1,12 +1,6 @@
 package com.github.fdh911.modules
 
 import com.github.fdh911.render.CuboidRenderer
-import com.github.fdh911.render.UserInterface
-import com.github.fdh911.render.opengl.GLElementBuffer
-import com.github.fdh911.render.opengl.GLProgram
-import com.github.fdh911.render.opengl.GLState2
-import com.github.fdh911.render.opengl.GLVertexArray
-import com.github.fdh911.render.opengl.GLVertexBuffer
 import imgui.ImGui
 import imgui.type.ImBoolean
 import imgui.type.ImString
@@ -15,31 +9,15 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EquipmentSlot
 import net.minecraft.entity.LivingEntity
-import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL45.*
 import kotlin.math.pow
 
-object EntityScanner {
-    private val closeColor = Vector4f(1.0f, 0.0f, 0.0f, 0.4f)
-    private val farColor = Vector4f(0.0f, 0.0f, 1.0f, 0.4f)
-
-    private val enabled = ImBoolean(false)
-    private val limitRadius = ImBoolean(false)
-    private val saveEntities = ImBoolean(false)
+object ModuleEntityScanner : Module("Entity Scanner") {
     private val savedEntityList = mutableListOf<Pair<Int, Entity>>()
 
-    private var individualEntity: Entity? = null
-
-    private val lowerBound = intArrayOf(1)
-    private val upperBound = intArrayOf(64)
-
-    private val regexList = mutableListOf<Regex>()
-    private val textModifiersRegex = Regex("\u00A7.")
-
-    fun update(ctx: WorldRenderContext) {
-        if(!enabled.get()) return
+    override fun update() {
+        if(!toggled) return
 
         val player = MinecraftClient.getInstance().player
             ?: return
@@ -73,6 +51,21 @@ object EntityScanner {
                 if(!matches) continue
             }
 
+            savedEntityList.add(dist to entity)
+        }
+
+        savedEntityList.sortWith { p1, p2 ->
+            p1.first - p2.first
+        }
+    }
+
+    private val closeColor = Vector4f(1.0f, 0.0f, 0.0f, 0.4f)
+    private val farColor = Vector4f(0.0f, 0.0f, 1.0f, 0.4f)
+
+    override fun renderUpdate(ctx: WorldRenderContext) {
+        if(!toggled) return
+
+        for((dist, entity) in savedEntityList) {
             val aabb = entity.boundingBox
             val delta = entity.interpolatedPos() - entity.pos.toVector3f()
             val lerp = (dist - lowerBound[0]).toFloat() / (upperBound[0] - lowerBound[0] + 1)
@@ -85,56 +78,54 @@ object EntityScanner {
                 aabb.maxPos.toVector3f() - aabb.minPos.toVector3f(),
                 color
             )
-
-            if(saveEntities.get())
-                savedEntityList.add(dist to entity)
         }
-
-        if(saveEntities.get())
-            savedEntityList.sortWith { p1, p2 ->
-                p1.first - p2.first
-            }
     }
 
+    private val limitRadius = ImBoolean(false)
+
+    private var individualEntity: Entity? = null
+
+    private val lowerBound = intArrayOf(1)
+    private val upperBound = intArrayOf(64)
+
+    private val regexList = mutableListOf<Regex>()
+    private val textModifiersRegex = Regex("\u00A7.")
     private val regexText = ImString()
     private var selectedRegex = 0
 
-    fun renderUI() {
+    override fun renderUI() {
         ImGui.begin("Entity Searcher")
 
         ImGui.setWindowSize(0.0f, 0.0f)
-        ImGui.checkbox("Enabled?", enabled)
+        ImGui.checkbox("Enabled?", imBooleanToggled)
         ImGui.checkbox("Limit the radius?", limitRadius)
         if(limitRadius.get()) {
             ImGui.sliderInt("Lower bound", lowerBound, 1, upperBound[0])
             ImGui.sliderInt("Upper bound", upperBound, lowerBound[0], 256)
         }
-        ImGui.checkbox("List entities", saveEntities)
-        if(saveEntities.get()) {
-            ImGui.begin("Detected entities")
-            ImGui.text("Detected entities")
-            ImGui.setWindowSize(0.0f, 0.0f)
-            ImGui.setNextItemWidth(-Float.MIN_VALUE)
-            if(ImGui.beginListBox("##")) {
-                for((dist, entity) in savedEntityList) {
-                    val name = entity.displayName?.string?.replace(textModifiersRegex, "") ?: "Unnamed"
-                    if(ImGui.selectable("(${dist}m) $name"))
-                        individualEntity = entity
-                }
-                ImGui.endListBox()
+        ImGui.begin("Detected entities")
+        ImGui.text("Detected entities")
+        ImGui.setWindowSize(0.0f, 0.0f)
+        ImGui.setNextItemWidth(-Float.MIN_VALUE)
+        if(ImGui.beginListBox("##")) {
+            for((dist, entity) in savedEntityList) {
+                val name = entity.displayName?.string?.replace(textModifiersRegex, "") ?: "Unnamed"
+                if(ImGui.selectable("(${dist}m) $name"))
+                    individualEntity = entity
             }
-            ImGui.end()
+            ImGui.endListBox()
         }
+        ImGui.end()
         if(ImGui.collapsingHeader("Regex filtering")) {
             ImGui.text("Entity name should fit at least one regex:")
-            ImGui.inputText("##", regexText)
+            ImGui.inputText("##_regex", regexText)
             if(ImGui.button("Add regex")) {
                 val s = regexText.get()
                 if(s.isNotEmpty() && s.isNotBlank())
                     regexList += Regex(s)
             }
             ImGui.setNextItemWidth(-Float.MIN_VALUE)
-            if(ImGui.beginListBox("##")) {
+            if(ImGui.beginListBox("##_regexList")) {
                 for(i in regexList.indices) {
                     val re = regexList[i]
                     if(ImGui.selectable(re.toString()))

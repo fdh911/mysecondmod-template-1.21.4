@@ -95,8 +95,6 @@ object UserInterface {
     }
 
     fun render(block: () -> Unit) {
-        val state = GLState2().apply { saveAll() }
-
         imGuiGl3.newFrame()
         imGuiGlfw.newFrame()
         ImGui.newFrame()
@@ -105,8 +103,6 @@ object UserInterface {
 
         ImGui.render()
         imGuiGl3.renderDrawData(ImGui.getDrawData())
-        
-        state.restoreAll()
     }
 
     private var windowStkCount = 0
