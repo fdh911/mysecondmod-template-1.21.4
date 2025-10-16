@@ -1,5 +1,6 @@
 package com.github.fdh911.render
 
+import com.github.fdh911.render.opengl.GLState2
 import imgui.ImFont
 import imgui.ImGui
 import imgui.ImVec4
@@ -107,6 +108,20 @@ object UserInterface {
         imGuiGlfw.newFrame()
         ImGui.newFrame()
         ImGui.pushFont(imGuiFont)
+
+        val state = GLState2().apply {
+            saveProgramAndBuffers()
+            saveRaster()
+            saveDepth()
+            saveBlend()
+        }
+        OverlayRender.renderWithProgram(OverlayRender.sheetProgram)
+        state.apply {
+            restoreBlend()
+            restoreDepth()
+            restoreRaster()
+            restoreProgramAndBuffers()
+        }
 
         block()
 

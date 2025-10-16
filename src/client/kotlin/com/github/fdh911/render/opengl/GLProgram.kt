@@ -40,6 +40,9 @@ class GLProgram(
         glAttachShader(id, vertShader)
         glAttachShader(id, fragShader)
         glLinkProgram(id)
+        if(glGetProgrami(id, GL_LINK_STATUS) != GL_TRUE)
+            programError()
+
         glDeleteShader(vertShader)
         glDeleteShader(fragShader)
     }
@@ -94,5 +97,10 @@ class GLProgram(
     private fun shaderError(shaderId: Int, shaderPath: String, shaderType: String) {
         val infoLog = glGetShaderInfoLog(shaderId, 1024)
         println("Failed to generate $shaderType shader with source at $shaderPath\n: $infoLog")
+    }
+
+    private fun programError() {
+        val infoLog = glGetProgramInfoLog(id, 1024)
+        println("Program $id error: $infoLog")
     }
 }
