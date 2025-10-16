@@ -4,6 +4,8 @@ This is a simple client that I'm currently developing, as of October 2025.
 
 Currently it has simple farming macro functionality, planning to expand it in the future.
 
+<img width="877" height="690" alt="mysecondmod" src="https://github.com/user-attachments/assets/72b76f5d-a530-4b92-a0c8-56317a05bd9d" />
+
 ## How to use
 
 Press J to open the user interface.
