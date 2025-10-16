@@ -1,5 +1,6 @@
 package com.github.fdh911.render
 
+import imgui.ImFont
 import imgui.ImGui
 import imgui.ImVec4
 import imgui.flag.ImGuiCond
@@ -9,6 +10,7 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.Text
+import java.io.File
 
 object UserInterface {
     init {
@@ -18,17 +20,24 @@ object UserInterface {
         iniFilename = null
         logFilename = null
     }
-    private val fonts = imguiIO.fonts.apply {
-        addFontFromFileTTF("/fonts/Roboto-Light.ttf", 18.0f)
-    }
-    val imGuiGlfw = ImGuiImplGlfw().apply {
+    private val imGuiGlfw = ImGuiImplGlfw().apply {
         val windowHandle = MinecraftClient.getInstance().window.handle
         init(windowHandle, true)
     }
-    val imGuiGl3 = ImGuiImplGl3().apply {
+    private val imGuiGl3 = ImGuiImplGl3().apply {
         init("#version 150")
     }
+    private val imGuiFont: ImFont
+
     init {
+        val classPath = UserInterface::class.java.getResourceAsStream("/fonts/Roboto-Light.ttf")
+            ?: throw RuntimeException("Could not open font file")
+        val tempFile = File.createTempFile("imgui", "font")
+        tempFile.writeBytes(classPath.readAllBytes())
+        imGuiFont = imguiIO.fonts.addFontFromFileTTF(tempFile.absolutePath, 18.0f)
+        imguiIO.fonts.build()
+        tempFile.delete()
+
         val colors = arrayOf(
             ImVec4(1.00f, 1.00f, 1.00f, 1.00f),
             ImVec4(0.40f, 0.40f, 0.40f, 1.00f),
@@ -97,9 +106,11 @@ object UserInterface {
         imGuiGl3.newFrame()
         imGuiGlfw.newFrame()
         ImGui.newFrame()
+        ImGui.pushFont(imGuiFont)
 
         block()
 
+        ImGui.popFont()
         ImGui.render()
         imGuiGl3.renderDrawData(ImGui.getDrawData())
     }
