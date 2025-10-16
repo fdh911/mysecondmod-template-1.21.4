@@ -28,6 +28,10 @@ object MySecondModClient : ClientModInitializer {
 				mc.setScreen(UserInterface.MCScreen)
 		}
 
+        Keybinds.register("Toggle Garden Macro", GLFW.GLFW_KEY_K) {
+            ModuleGardenMacro.toggled = !ModuleGardenMacro.toggled
+        }
+
 		WorldRenderEvents.END.register {
 			ctx: WorldRenderContext ->
 			if(mc.player == null || mc.world == null) return@register
