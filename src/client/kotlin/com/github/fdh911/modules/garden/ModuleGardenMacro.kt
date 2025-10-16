@@ -4,6 +4,7 @@ import com.github.fdh911.modules.Module
 import com.github.fdh911.render.CuboidRenderer
 import com.github.fdh911.render.UserInterface
 import imgui.ImGui
+import imgui.type.ImBoolean
 import imgui.type.ImInt
 import imgui.type.ImString
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -12,6 +13,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.MinecraftClient
+import net.minecraft.scoreboard.ScoreboardDisplaySlot
+import net.minecraft.scoreboard.Team
+import net.minecraft.text.Text
 import net.minecraft.util.math.BlockPos
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -42,7 +46,23 @@ object ModuleGardenMacro: Module("Garden Macro") {
         }
     }
 
+    val disableOutsideGarden: Boolean
+        get() = UIState.disableOutsideGarden.get()
+
+    val disableOnServerClose: Boolean
+        get() = UIState.disableOnServerClose.get()
+
     override fun update() {
+        val scoreboard = readScoreboard()
+        if(disableOutsideGarden && scoreboard?.contains("The Garden") != true) {
+            toggled = false
+            return
+        }
+        if(disableOnServerClose && scoreboard?.contains("Server closing") == true) {
+            toggled = false
+            return
+        }
+
         if(currentScene == null) return
         val scene = currentScene!!
 
@@ -110,18 +130,22 @@ object ModuleGardenMacro: Module("Garden Macro") {
 
     private object UIState {
         var sceneCreation = false
-        var sceneCreationNameEdit = ImString()
+        val sceneCreationNameEdit = ImString()
         var nodePtr: Node? = null
         var actionPtr: INodeAction? = null
-        var nodeNameEdit = ImString()
-        var nodeX = ImInt()
-        var nodeY = ImInt()
-        var nodeZ = ImInt()
+        val nodeNameEdit = ImString()
+        val nodeX = ImInt()
+        val nodeY = ImInt()
+        val nodeZ = ImInt()
         var sceneLoading = false
+        val disableOutsideGarden = ImBoolean(true)
+        val disableOnServerClose = ImBoolean(true)
     }
 
     override fun renderUI() {
         ImGui.setWindowSize(0.0f, 0.0f)
+        ImGui.checkbox("Disable when outside garden", UIState.disableOutsideGarden)
+        ImGui.checkbox("Disable on server close", UIState.disableOnServerClose)
         ImGui.separatorText("Scene")
         ImGui.text("Current: ${currentScene?.name ?: "None"}")
         ImGui.setNextItemWidth(-Float.MIN_VALUE)
@@ -270,5 +294,32 @@ object ModuleGardenMacro: Module("Garden Macro") {
                     UIState.nodePtr = null
             }
         }
+    }
+
+    private fun readScoreboard(): String? {
+        val scoreboard = MinecraftClient.getInstance().world?.scoreboard
+            ?: return null
+
+        val objective = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR)
+            ?: return null
+
+        val title = objective.displayName.string
+
+        val contents = StringBuilder()
+        contents.append(title)
+
+        val entries = scoreboard.getScoreboardEntries(objective)
+
+        for(entry in entries) {
+            val owner = entry.owner()
+            val team = scoreboard.getScoreHolderTeam(owner)
+            val decorated = (if(team != null)
+                Team.decorateName(team, Text.of(owner))
+            else
+                Text.of(owner)).string.trimEnd()
+            contents.append(decorated)
+        }
+
+        return contents.toString().replace("\u00A7.".toRegex(), "")
     }
 }
