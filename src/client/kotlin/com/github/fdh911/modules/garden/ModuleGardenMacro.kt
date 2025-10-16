@@ -43,8 +43,6 @@ object ModuleGardenMacro: Module("Garden Macro") {
     }
 
     override fun update() {
-        if(!toggled) return
-
         if(currentScene == null) return
         val scene = currentScene!!
 
@@ -89,8 +87,6 @@ object ModuleGardenMacro: Module("Garden Macro") {
     }
 
     override fun renderUpdate(ctx: WorldRenderContext) {
-        if(!toggled) return
-
         if(currentScene == null) return
         val scene = currentScene!!
         for(node in scene.nodeList) {
@@ -124,9 +120,8 @@ object ModuleGardenMacro: Module("Garden Macro") {
         var sceneLoading = false
     }
 
-    override fun renderUI() = UserInterface.newWindow("Garden Macro") {
+    override fun renderUI() {
         ImGui.setWindowSize(0.0f, 0.0f)
-        ImGui.checkbox("Enabled?", imBooleanToggled)
         ImGui.separatorText("Scene")
         ImGui.text("Current: ${currentScene?.name ?: "None"}")
         ImGui.setNextItemWidth(-Float.MIN_VALUE)
@@ -173,8 +168,7 @@ object ModuleGardenMacro: Module("Garden Macro") {
             }
         }
 
-        if(currentScene == null)
-            return@newWindow
+        if(currentScene == null) return
 
         val scene = currentScene!!
 

@@ -1,6 +1,5 @@
 package com.github.fdh911.render
 
-import com.github.fdh911.render.opengl.GLState2
 import imgui.ImGui
 import imgui.ImVec4
 import imgui.flag.ImGuiCond
@@ -20,7 +19,7 @@ object UserInterface {
         logFilename = null
     }
     private val fonts = imguiIO.fonts.apply {
-        addFontDefault()
+        addFontFromFileTTF("/fonts/Roboto-Light.ttf", 18.0f)
     }
     val imGuiGlfw = ImGuiImplGlfw().apply {
         val windowHandle = MinecraftClient.getInstance().window.handle
@@ -30,7 +29,7 @@ object UserInterface {
         init("#version 150")
     }
     init {
-        val colors = arrayOf<ImVec4>(
+        val colors = arrayOf(
             ImVec4(1.00f, 1.00f, 1.00f, 1.00f),
             ImVec4(0.40f, 0.40f, 0.40f, 1.00f),
             ImVec4(0.00f, 0.00f, 0.00f, 1.00f),

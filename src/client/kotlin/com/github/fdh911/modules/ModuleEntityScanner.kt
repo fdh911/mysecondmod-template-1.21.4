@@ -1,6 +1,7 @@
 package com.github.fdh911.modules
 
 import com.github.fdh911.render.CuboidRenderer
+import com.github.fdh911.render.UserInterface
 import imgui.ImGui
 import imgui.type.ImBoolean
 import imgui.type.ImString
@@ -17,8 +18,6 @@ object ModuleEntityScanner : Module("Entity Scanner") {
     private val savedEntityList = mutableListOf<Pair<Int, Entity>>()
 
     override fun update() {
-        if(!toggled) return
-
         val player = MinecraftClient.getInstance().player
             ?: return
 
@@ -63,8 +62,6 @@ object ModuleEntityScanner : Module("Entity Scanner") {
     private val farColor = Vector4f(0.0f, 0.0f, 1.0f, 0.4f)
 
     override fun renderUpdate(ctx: WorldRenderContext) {
-        if(!toggled) return
-
         for((dist, entity) in savedEntityList) {
             val aabb = entity.boundingBox
             val delta = entity.interpolatedPos() - entity.pos.toVector3f()
@@ -94,10 +91,7 @@ object ModuleEntityScanner : Module("Entity Scanner") {
     private var selectedRegex = 0
 
     override fun renderUI() {
-        ImGui.begin("Entity Searcher")
-
         ImGui.setWindowSize(0.0f, 0.0f)
-        ImGui.checkbox("Enabled?", imBooleanToggled)
         ImGui.checkbox("Limit the radius?", limitRadius)
         if(limitRadius.get()) {
             ImGui.sliderInt("Lower bound", lowerBound, 1, upperBound[0])
@@ -153,8 +147,6 @@ object ModuleEntityScanner : Module("Entity Scanner") {
             }
             ImGui.end()
         }
-
-        ImGui.end()
     }
 
     private fun Entity.interpolatedPos(): Vector3f {

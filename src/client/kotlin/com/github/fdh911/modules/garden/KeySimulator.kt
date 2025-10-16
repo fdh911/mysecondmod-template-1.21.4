@@ -10,7 +10,7 @@ object KeySimulator {
     private val finishedPress = mutableSetOf<KeyBinding>()
 
     fun update() {
-        if(!ModuleGardenMacro.toggled.get()) {
+        if(!ModuleGardenMacro.toggled) {
             for(key in toHold)
                 key.isPressed = false
             for(key in toPress)

@@ -3,6 +3,7 @@ package com.github.fdh911
 import com.github.fdh911.io.Keybinds
 import com.github.fdh911.modules.Module
 import com.github.fdh911.modules.ModuleEntityScanner
+import com.github.fdh911.modules.ModuleList
 import com.github.fdh911.render.UserInterface
 import com.github.fdh911.modules.garden.ModuleGardenMacro
 import com.github.fdh911.modules.garden.KeySimulator
@@ -19,11 +20,6 @@ import org.lwjgl.glfw.GLFW
 object MySecondModClient : ClientModInitializer {
 	override fun onInitializeClient() {
 		val mc = MinecraftClient.getInstance()
-		val moduleList = listOf<Module>(
-			ModuleGardenMacro,
-			ModuleEntityScanner,
-			ModuleNoPause,
-		)
 
 		Keybinds.register("Open / Close UI", GLFW.GLFW_KEY_J) {
 			if(mc.currentScreen === UserInterface.MCScreen)
@@ -35,23 +31,15 @@ object MySecondModClient : ClientModInitializer {
 		WorldRenderEvents.END.register {
 			ctx: WorldRenderContext ->
 			if(mc.player == null || mc.world == null) return@register
-
-			val state = GLState2().apply { saveAll() }
-
-			for(module in moduleList)
-				if(module.toggled)
-					module.renderUpdate(ctx)
-
-			state.restoreAll()
+            val state = GLState2().apply { saveAll() }
+            ModuleList.renderUpdate(ctx)
+            state.restoreAll()
 		}
 
 		ClientTickEvents.END_CLIENT_TICK.register {
 			if(mc.player == null || mc.world == null) return@register
-
-			for(module in moduleList)
-				if(module.toggled)
-					module.update()
-
+            ModuleList.update()
+            // TODO rm
 			Keybinds.update()
 			KeySimulator.update()
 			MouseLock.update()
@@ -59,10 +47,7 @@ object MySecondModClient : ClientModInitializer {
 
 		UserInterface.MCScreen.onRender {
 			val state = GLState2().apply { saveAll() }
-			UserInterface.render {
-				ModuleGardenMacro.renderUI()
-				ModuleNoPause.renderUI()
-			}
+            UserInterface.render(ModuleList::renderUI)
 			state.restoreAll()
 		}
 	}

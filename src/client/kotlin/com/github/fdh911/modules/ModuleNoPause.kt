@@ -13,7 +13,5 @@ object ModuleNoPause: Module("No Pause") {
 
     override fun renderUpdate(ctx: WorldRenderContext) { }
 
-    override fun renderUI() = UserInterface.newWindow("No Pause") {
-        ImGui.checkbox("Enabled?", imBooleanToggled)
-    }
+    override fun renderUI() { }
 }

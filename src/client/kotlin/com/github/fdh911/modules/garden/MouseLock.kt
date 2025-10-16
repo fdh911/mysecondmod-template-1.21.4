@@ -2,10 +2,10 @@ package com.github.fdh911.modules.garden
 
 object MouseLock {
     var isLocked = false
-        get() = field && ModuleGardenMacro.toggled.get()
+        get() = field && ModuleGardenMacro.toggled
 
     fun update() {
-        if(!ModuleGardenMacro.toggled.get())
+        if(!ModuleGardenMacro.toggled)
             isLocked = false
     }
 }
