@@ -33,6 +33,8 @@ class NodeActionReleaseKey(private var keyToRelease: KeyBinding = MinecraftClien
         return keepRendering
     }
 
+    override fun clone() = NodeActionReleaseKey(keyToRelease)
+
     override val fileFormat: String
         get() = "release\n${keyToRelease.translationKey}"
 

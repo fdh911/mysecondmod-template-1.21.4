@@ -33,6 +33,8 @@ class NodeActionPressKey(private var keyToPress: KeyBinding = MinecraftClient.ge
         return keepRendering
     }
 
+    override fun clone() = NodeActionPressKey(keyToPress)
+
     override val fileFormat: String
         get() = "press\n${keyToPress.translationKey}"
 

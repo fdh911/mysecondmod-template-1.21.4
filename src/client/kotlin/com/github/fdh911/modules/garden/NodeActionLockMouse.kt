@@ -9,6 +9,8 @@ class NodeActionLockMouse: INodeAction {
         return false
     }
 
+    override fun clone() = NodeActionLockMouse()
+
     override val fileFormat: String
         get() = "lockMouse"
 

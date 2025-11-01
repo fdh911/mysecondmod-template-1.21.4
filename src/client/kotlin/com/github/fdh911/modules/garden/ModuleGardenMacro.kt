@@ -54,10 +54,13 @@ object ModuleGardenMacro: Module("Garden Macro") {
 
     override fun update() {
         val scoreboard = readScoreboard()
-        if(disableOutsideGarden && scoreboard?.contains("The Garden") != true) {
+
+        // TODO maybe do this via tab
+        if(disableOutsideGarden && scoreboard?.contains("The Garden") != true && scoreboard?.contains("Plot ") != true) {
             toggled = false
             return
         }
+
         if(disableOnServerClose && scoreboard?.contains("Server closing") == true) {
             toggled = false
             return
@@ -196,35 +199,62 @@ object ModuleGardenMacro: Module("Garden Macro") {
 
         val scene = currentScene!!
 
+        val selectNodeInUI = {
+            node: Node? ->
+            UIState.nodePtr = node
+            if(node != null) {
+                UIState.nodeNameEdit.set(node.name)
+                UIState.nodeX.set(node.pos.x)
+                UIState.nodeY.set(node.pos.y)
+                UIState.nodeZ.set(node.pos.z)
+            }
+        }
+
         ImGui.separatorText("Nodes")
         if(ImGui.button("Add new node")) {
             val playerPos = MinecraftClient.getInstance().player!!.blockPos
             val newNode = Node(playerPos, "Node ${scene.nodeList.size}")
             scene.nodeList.add(newNode)
-            UIState.nodePtr = newNode
-            UIState.nodeNameEdit.set(newNode.name)
-            UIState.nodeX.set(newNode.pos.x)
-            UIState.nodeY.set(newNode.pos.y)
-            UIState.nodeZ.set(newNode.pos.z)
+            selectNodeInUI(newNode)
         }
 
         ImGui.setNextItemWidth(-Float.MIN_VALUE)
+        var toRemove = -1
         if(ImGui.collapsingHeader("Existing nodes")) {
             ImGui.setNextItemWidth(-Float.MIN_VALUE)
             if(ImGui.beginListBox("##_2")) {
                 for(i in scene.nodeList.indices) {
                     val node = scene.nodeList[i]
-                    if(ImGui.selectable("${node.name}##node$i")) {
-                        UIState.nodePtr = node
-                        UIState.nodeNameEdit.set(node.name)
-                        UIState.nodeX.set(node.pos.x)
-                        UIState.nodeY.set(node.pos.y)
-                        UIState.nodeZ.set(node.pos.z)
+                    ImGui.pushID(i)
+                    if(ImGui.button(node.name))
+                        selectNodeInUI(node)
+                    ImGui.sameLine()
+                    if(ImGui.button("dup")) {
+                        val clonedNode = node.clone()
+                        val regex = "(?<name>.*) (?<number>[0-9]*)".toRegex()
+                        val match = regex.matchEntire(clonedNode.name)
+                        clonedNode.name = if(match != null) {
+                            val name = match.groups["name"]!!.value
+                            val number = match.groups["number"]!!.value.toInt() + 1
+                            "$name $number"
+                        } else {
+                            "${clonedNode.name} 1"
+                        }
+                        scene.nodeList.add(i + 1, clonedNode)
+                        selectNodeInUI(clonedNode)
                     }
+                    ImGui.sameLine()
+                    if(ImGui.button("rm")) {
+                        toRemove = i
+                        selectNodeInUI(null)
+                    }
+                    ImGui.popID()
                 }
                 ImGui.endListBox()
             }
         }
+        if(toRemove != -1)
+            scene.nodeList.removeAt(toRemove)
 
         if(UIState.nodePtr != null) {
             val node = UIState.nodePtr!!

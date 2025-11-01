@@ -33,6 +33,8 @@ class NodeActionHoldKey(private var keyToHold: KeyBinding = MinecraftClient.getI
         return keepRendering
     }
 
+    override fun clone() = NodeActionHoldKey(keyToHold)
+
     override val fileFormat: String
         get() {
             return "hold\n${keyToHold.translationKey}"
