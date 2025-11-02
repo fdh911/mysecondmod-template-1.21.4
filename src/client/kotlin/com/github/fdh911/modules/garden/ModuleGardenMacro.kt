@@ -3,6 +3,7 @@ package com.github.fdh911.modules.garden
 import com.github.fdh911.modules.Module
 import com.github.fdh911.render.CuboidRenderer
 import com.github.fdh911.render.UserInterface
+import com.github.fdh911.skyblock.ScoreboardReader
 import imgui.ImGui
 import imgui.type.ImBoolean
 import imgui.type.ImInt
@@ -53,7 +54,7 @@ object ModuleGardenMacro: Module("Garden Macro") {
         get() = UIState.disableOnServerClose.get()
 
     override fun update() {
-        val scoreboard = readScoreboard()
+        val scoreboard = ScoreboardReader.scoreboard
 
         // TODO maybe do this via tab
         if(disableOutsideGarden && scoreboard?.contains("The Garden") != true && scoreboard?.contains("Plot ") != true) {
@@ -324,32 +325,5 @@ object ModuleGardenMacro: Module("Garden Macro") {
                     UIState.nodePtr = null
             }
         }
-    }
-
-    private fun readScoreboard(): String? {
-        val scoreboard = MinecraftClient.getInstance().world?.scoreboard
-            ?: return null
-
-        val objective = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR)
-            ?: return null
-
-        val title = objective.displayName.string
-
-        val contents = StringBuilder()
-        contents.append(title)
-
-        val entries = scoreboard.getScoreboardEntries(objective)
-
-        for(entry in entries) {
-            val owner = entry.owner()
-            val team = scoreboard.getScoreHolderTeam(owner)
-            val decorated = (if(team != null)
-                Team.decorateName(team, Text.of(owner))
-            else
-                Text.of(owner)).string.trimEnd()
-            contents.append(decorated)
-        }
-
-        return contents.toString().replace("\u00A7.".toRegex(), "")
     }
 }

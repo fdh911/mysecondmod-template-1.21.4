@@ -10,6 +10,8 @@ import com.github.fdh911.modules.garden.KeySimulator
 import com.github.fdh911.modules.garden.MouseLock
 import com.github.fdh911.modules.ModuleNoPause
 import com.github.fdh911.render.opengl.GLState2
+import com.github.fdh911.skyblock.SkyblockState
+import com.github.fdh911.skyblock.TabReader
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
@@ -32,6 +34,11 @@ object MySecondModClient : ClientModInitializer {
             ModuleGardenMacro.toggled = !ModuleGardenMacro.toggled
         }
 
+        Keybinds.register("Test tab", GLFW.GLFW_KEY_H) {
+            println("Is in skyblock: ${SkyblockState.isInSkyblock}")
+            println("Skyblock area: ${SkyblockState.currentArea}")
+        }
+
 		WorldRenderEvents.END.register {
 			ctx: WorldRenderContext ->
 			if(mc.player == null || mc.world == null) return@register
@@ -42,6 +49,7 @@ object MySecondModClient : ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register {
 			if(mc.player == null || mc.world == null) return@register
+            SkyblockState.update()
             ModuleList.update()
             // TODO rm
 			Keybinds.update()
