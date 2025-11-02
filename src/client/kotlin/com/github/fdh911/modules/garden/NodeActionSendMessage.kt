@@ -23,7 +23,7 @@ class NodeActionSendMessage(private val msgImString: ImString = ImString().apply
         return keepRendering
     }
 
-    override fun clone() = NodeActionSendMessage(msgImString)
+    override fun clone() = NodeActionSendMessage(ImString().apply{ set(msgImString.get()) })
 
     override val fileFormat: String
         get() = "send\n$msgImString"

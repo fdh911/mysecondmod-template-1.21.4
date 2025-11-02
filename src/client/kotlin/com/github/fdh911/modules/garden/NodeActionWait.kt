@@ -22,7 +22,7 @@ class NodeActionWait(private var ms: ImInt = ImInt(500)): INodeAction {
         return keepRendering
     }
 
-    override fun clone() = NodeActionWait(ms)
+    override fun clone() = NodeActionWait(ImInt(ms.get()))
 
     override val fileFormat: String
         get() = "wait\n${ms.get()}"

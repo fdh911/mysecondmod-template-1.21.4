@@ -1,5 +1,6 @@
 package com.github.fdh911.modules.garden
 
+import imgui.type.ImFloat
 import imgui.type.ImInt
 import imgui.type.ImString
 import net.minecraft.client.MinecraftClient
@@ -52,6 +53,16 @@ class NodeScene(var name: String) {
                         "wait" -> {
                             val ms = br.readLine().toInt()
                             NodeActionWait(ImInt(ms))
+                        }
+                        "rotateexact" -> {
+                            val yaw = br.readLine().toFloat()
+                            val pitch = br.readLine().toFloat()
+                            NodeActionRotateExact(ImFloat(yaw), ImFloat(pitch))
+                        }
+                        "rotatedelta" -> {
+                            val yawDelta = br.readLine().toFloat()
+                            val pitchDelta = br.readLine().toFloat()
+                            NodeActionRotateDelta(ImFloat(yawDelta), ImFloat(pitchDelta))
                         }
                         "lockMouse" -> NodeActionLockMouse()
                         "unlockMouse" -> NodeActionUnlockMouse()
