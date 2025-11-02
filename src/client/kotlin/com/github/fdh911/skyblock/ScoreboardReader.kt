@@ -1,36 +1,41 @@
 package com.github.fdh911.skyblock
 
+import com.github.fdh911.utils.noModifiers
 import net.minecraft.client.MinecraftClient
 import net.minecraft.scoreboard.ScoreboardDisplaySlot
 import net.minecraft.scoreboard.Team
 import net.minecraft.text.Text
 
 object ScoreboardReader {
-    val scoreboard: String?
-        get() {
-            val scoreboard = MinecraftClient.getInstance().world?.scoreboard
-                ?: return null
+    var scoreboard: String? = null
+        private set
 
-            val objective = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR)
-                ?: return null
+    fun update() {
+        scoreboard = null
 
-            val title = objective.displayName.string
+        val sb = MinecraftClient.getInstance().world?.scoreboard
+            ?: return
 
-            val contents = StringBuilder()
-            contents.append(title)
+        val objective = sb.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR)
+            ?: return
 
-            val entries = scoreboard.getScoreboardEntries(objective)
+        val title = objective.displayName.string
 
-            for(entry in entries) {
-                val owner = entry.owner()
-                val team = scoreboard.getScoreHolderTeam(owner)
-                val decorated = (if(team != null)
-                    Team.decorateName(team, Text.of(owner))
-                else
-                    Text.of(owner)).string.trimEnd()
-                contents.append(decorated)
-            }
+        val contents = StringBuilder()
+        contents.append(title)
 
-            return contents.toString().replace("\u00A7.".toRegex(), "")
+        val entries = sb.getScoreboardEntries(objective)
+
+        for(entry in entries) {
+            val owner = entry.owner()
+            val team = sb.getScoreHolderTeam(owner)
+            val decorated = (if(team != null)
+                Team.decorateName(team, Text.of(owner))
+            else
+                Text.of(owner)).string.trimEnd()
+            contents.append(decorated)
         }
+
+        scoreboard = contents.toString().noModifiers()
+    }
 }

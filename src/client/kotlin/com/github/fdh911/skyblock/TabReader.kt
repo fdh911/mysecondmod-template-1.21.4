@@ -1,13 +1,18 @@
 package com.github.fdh911.skyblock
 
+import com.github.fdh911.utils.noModifiers
 import net.minecraft.client.MinecraftClient
 
 object TabReader {
-    val tab: List<String>?
-        get() {
-            val playerListEntries = MinecraftClient.getInstance().networkHandler?.playerList
-                ?: return null
+    var tab: List<String>? = null
+        private set
 
-            return playerListEntries.map { it.displayName?.string ?: "Null" }
-        }
+    fun update() {
+        tab = null
+
+        val playerListEntries = MinecraftClient.getInstance().networkHandler?.playerList
+            ?: return
+
+        tab = playerListEntries.map { it.displayName?.string?.noModifiers() ?: "null" }
+    }
 }

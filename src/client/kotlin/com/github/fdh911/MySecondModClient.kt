@@ -34,11 +34,6 @@ object MySecondModClient : ClientModInitializer {
             ModuleGardenMacro.toggled = !ModuleGardenMacro.toggled
         }
 
-        Keybinds.register("Test tab", GLFW.GLFW_KEY_H) {
-            println("Is in skyblock: ${SkyblockState.isInSkyblock}")
-            println("Skyblock area: ${SkyblockState.currentArea}")
-        }
-
 		WorldRenderEvents.END.register {
 			ctx: WorldRenderContext ->
 			if(mc.player == null || mc.world == null) return@register
@@ -49,7 +44,6 @@ object MySecondModClient : ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register {
 			if(mc.player == null || mc.world == null) return@register
-            SkyblockState.update()
             ModuleList.update()
             // TODO rm
 			Keybinds.update()

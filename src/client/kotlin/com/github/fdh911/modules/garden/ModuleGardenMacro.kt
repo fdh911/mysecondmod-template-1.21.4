@@ -4,6 +4,8 @@ import com.github.fdh911.modules.Module
 import com.github.fdh911.render.CuboidRenderer
 import com.github.fdh911.render.UserInterface
 import com.github.fdh911.skyblock.ScoreboardReader
+import com.github.fdh911.skyblock.SkyblockState
+import com.github.fdh911.skyblock.TabReader
 import imgui.ImGui
 import imgui.type.ImBoolean
 import imgui.type.ImInt
@@ -54,15 +56,12 @@ object ModuleGardenMacro: Module("Garden Macro") {
         get() = UIState.disableOnServerClose.get()
 
     override fun update() {
-        val scoreboard = ScoreboardReader.scoreboard
-
-        // TODO maybe do this via tab
-        if(disableOutsideGarden && scoreboard?.contains("The Garden") != true && scoreboard?.contains("Plot ") != true) {
+        if(disableOutsideGarden && !SkyblockState.Garden.isInGarden) {
             toggled = false
             return
         }
 
-        if(disableOnServerClose && scoreboard?.contains("Server closing") == true) {
+        if(disableOnServerClose && SkyblockState.isServerClosing == true) {
             toggled = false
             return
         }
