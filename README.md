@@ -1,10 +1,10 @@
 # Minecraft 1.21.4 client for Hypixel Skyblock
 
-This is a simple client that I'm currently developing, as of October 2025.
+This is a simple client that I'm currently developing, as of November 2025.
 
 Currently it has simple farming macro functionality, planning to expand it in the future.
 
-<img width="877" height="690" alt="mysecondmod" src="https://github.com/user-attachments/assets/72b76f5d-a530-4b92-a0c8-56317a05bd9d" />
+<img width="1388" height="725" alt="image" src="https://github.com/user-attachments/assets/37bc5dec-e9e9-4e1b-a864-e82aec566859" />
 
 ## How to use
 
@@ -22,3 +22,6 @@ Once you have put together your macro, you can save the node scene by clicking o
 "Save scene", and load it again by clicking on "Load scene". The scenes
 are saved under the name "yourscenename.mysecondmod.scene.txt", in the
 base Minecraft folder.
+
+You can enable / disable the garden macro (a kill switch of sorts) by pressing K.
+(This might be removed or reworked in the future)
