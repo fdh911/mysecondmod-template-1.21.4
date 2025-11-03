@@ -1,28 +1,29 @@
-package com.github.fdh911.modules.garden
+package com.github.fdh911.modules.macro.nodeactions
 
+import com.github.fdh911.modules.macro.KeySimulator
 import com.github.fdh911.render.UserInterface
 import imgui.ImGui
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.option.KeyBinding
 
-class NodeActionHoldKey(private var keyToHold: KeyBinding = MinecraftClient.getInstance().options.forwardKey): INodeAction {
+class NodeActionPressKey(private var keyToPress: KeyBinding = MinecraftClient.getInstance().options.forwardKey): INodeAction {
     override suspend fun execute() {
-        KeySimulator.toHold.add(keyToHold)
+        KeySimulator.toPress.add(keyToPress)
     }
 
     override fun renderUI(): Boolean {
         var keepRendering = true
-        UserInterface.newWindow("Hold key action") {
+        UserInterface.newWindow("Press key action") {
             ImGui.setWindowSize(0.0f, 0.0f)
             ImGui.separatorText("Currently selected")
-            ImGui.text("${keyToHold.translationKey}")
+            ImGui.text("${keyToPress.translationKey}")
             ImGui.separatorText("Select another key")
             if(ImGui.beginListBox("##_possibleKeys")) {
                 val keyArray = MinecraftClient.getInstance().options.allKeys
                 for(i in keyArray.indices) {
                     val key = keyArray[i]
                     if(ImGui.selectable("${key.translationKey}##_key$i"))
-                        keyToHold = key
+                        keyToPress = key
                 }
                 ImGui.endListBox()
             }
@@ -33,12 +34,10 @@ class NodeActionHoldKey(private var keyToHold: KeyBinding = MinecraftClient.getI
         return keepRendering
     }
 
-    override fun clone() = NodeActionHoldKey(keyToHold)
+    override fun clone() = NodeActionPressKey(keyToPress)
 
     override val fileFormat: String
-        get() {
-            return "hold\n${keyToHold.translationKey}"
-        }
+        get() = "press\n${keyToPress.translationKey}"
 
-    override fun toString() = "Hold: ${keyToHold.translationKey}"
+    override fun toString() = "Press: ${keyToPress.translationKey}"
 }

@@ -1,4 +1,6 @@
-package com.github.fdh911.modules.garden
+package com.github.fdh911.modules.macro.nodeactions
+
+import com.github.fdh911.modules.macro.MouseLock
 
 class NodeActionLockMouse: INodeAction {
     override suspend fun execute() {

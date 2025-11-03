@@ -91,25 +91,25 @@ object ModuleEntityScanner : Module("Entity Scanner") {
     private var selectedRegex = 0
 
     override fun renderUI() {
-        ImGui.setWindowSize(0.0f, 0.0f)
         ImGui.checkbox("Limit the radius?", limitRadius)
         if(limitRadius.get()) {
             ImGui.sliderInt("Lower bound", lowerBound, 1, upperBound[0])
             ImGui.sliderInt("Upper bound", upperBound, lowerBound[0], 256)
         }
-        ImGui.begin("Detected entities")
-        ImGui.text("Detected entities")
-        ImGui.setWindowSize(0.0f, 0.0f)
-        ImGui.setNextItemWidth(-Float.MIN_VALUE)
-        if(ImGui.beginListBox("##")) {
-            for((dist, entity) in savedEntityList) {
-                val name = entity.displayName?.string?.replace(textModifiersRegex, "") ?: "Unnamed"
-                if(ImGui.selectable("(${dist}m) $name"))
-                    individualEntity = entity
+
+        UserInterface.newWindow("Detected entities") {
+            ImGui.text("Detected entities")
+            ImGui.setNextItemWidth(-Float.MIN_VALUE)
+            if(ImGui.beginListBox("##")) {
+                for((dist, entity) in savedEntityList) {
+                    val name = entity.displayName?.string?.replace(textModifiersRegex, "") ?: "Unnamed"
+                    if(ImGui.selectable("(${dist}m) $name"))
+                        individualEntity = entity
+                }
+                ImGui.endListBox()
             }
-            ImGui.endListBox()
         }
-        ImGui.end()
+
         if(ImGui.collapsingHeader("Regex filtering")) {
             ImGui.text("Entity name should fit at least one regex:")
             ImGui.inputText("##_regex", regexText)
@@ -132,20 +132,20 @@ object ModuleEntityScanner : Module("Entity Scanner") {
                     regexList.removeAt(selectedRegex)
             }
         }
+
         if(individualEntity != null) with(individualEntity!!) {
-            ImGui.begin("Individual Entity")
-            ImGui.setWindowSize(0.0f, 0.0f)
-            ImGui.text("Name: ${displayName?.string ?: "Unnamed"}")
-            ImGui.text("Type: $type")
-            ImGui.text("Position: ${x.round(1)} ${y.round(1)} ${z.round(1)}")
-            if(this is LivingEntity) {
-                ImGui.text("Health: $health")
-                ImGui.text("Helmet: ${getEquippedStack(EquipmentSlot.HEAD)}")
-                ImGui.text("Chestplate: ${getEquippedStack(EquipmentSlot.BODY)}")
-                ImGui.text("Leggings: ${getEquippedStack(EquipmentSlot.LEGS)}")
-                ImGui.text("Boots: ${getEquippedStack(EquipmentSlot.FEET)}")
+            UserInterface.newWindow("Individual entity") {
+                ImGui.text("Name: ${displayName?.string ?: "Unnamed"}")
+                ImGui.text("Type: $type")
+                ImGui.text("Position: ${x.round(1)} ${y.round(1)} ${z.round(1)}")
+                if(this is LivingEntity) {
+                    ImGui.text("Health: $health")
+                    ImGui.text("Helmet: ${getEquippedStack(EquipmentSlot.HEAD)}")
+                    ImGui.text("Chestplate: ${getEquippedStack(EquipmentSlot.BODY)}")
+                    ImGui.text("Leggings: ${getEquippedStack(EquipmentSlot.LEGS)}")
+                    ImGui.text("Boots: ${getEquippedStack(EquipmentSlot.FEET)}")
+                }
             }
-            ImGui.end()
         }
     }
 

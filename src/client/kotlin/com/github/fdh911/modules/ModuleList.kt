@@ -1,8 +1,7 @@
 package com.github.fdh911.modules
 
-import com.github.fdh911.modules.garden.ModuleGardenMacro
 import com.github.fdh911.render.UserInterface
-import com.github.fdh911.skyblock.SkyblockState
+import com.github.fdh911.state.SkyblockState
 import imgui.ImGui
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 

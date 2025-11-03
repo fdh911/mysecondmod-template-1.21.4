@@ -1,17 +1,12 @@
 package com.github.fdh911
 
 import com.github.fdh911.io.Keybinds
-import com.github.fdh911.modules.Module
-import com.github.fdh911.modules.ModuleEntityScanner
 import com.github.fdh911.modules.ModuleList
 import com.github.fdh911.render.UserInterface
-import com.github.fdh911.modules.garden.ModuleGardenMacro
-import com.github.fdh911.modules.garden.KeySimulator
-import com.github.fdh911.modules.garden.MouseLock
-import com.github.fdh911.modules.ModuleNoPause
+import com.github.fdh911.modules.ModuleGardenMacro
+import com.github.fdh911.modules.macro.KeySimulator
+import com.github.fdh911.modules.macro.MouseLock
 import com.github.fdh911.render.opengl.GLState2
-import com.github.fdh911.skyblock.SkyblockState
-import com.github.fdh911.skyblock.TabReader
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
@@ -30,6 +25,9 @@ object MySecondModClient : ClientModInitializer {
 				mc.setScreen(UserInterface.MCScreen)
 		}
 
+        // This should be removed at some point
+        // Should make a system that allows
+        // any module toggle to be bound to any key
         Keybinds.register("Toggle Garden Macro", GLFW.GLFW_KEY_K) {
             ModuleGardenMacro.toggled = !ModuleGardenMacro.toggled
         }
@@ -37,6 +35,7 @@ object MySecondModClient : ClientModInitializer {
 		WorldRenderEvents.END.register {
 			ctx: WorldRenderContext ->
 			if(mc.player == null || mc.world == null) return@register
+
             val state = GLState2().apply { saveAll() }
             ModuleList.renderUpdate(ctx)
             state.restoreAll()
@@ -44,8 +43,9 @@ object MySecondModClient : ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register {
 			if(mc.player == null || mc.world == null) return@register
+
             ModuleList.update()
-            // TODO rm
+
 			Keybinds.update()
 			KeySimulator.update()
 			MouseLock.update()

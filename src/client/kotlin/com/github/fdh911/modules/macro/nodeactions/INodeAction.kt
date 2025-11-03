@@ -1,4 +1,4 @@
-package com.github.fdh911.modules.garden
+package com.github.fdh911.modules.macro.nodeactions
 
 interface INodeAction: Cloneable {
     suspend fun execute()

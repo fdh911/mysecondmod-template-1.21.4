@@ -1,5 +1,6 @@
-package com.github.fdh911.modules.garden
+package com.github.fdh911.modules.macro
 
+import com.github.fdh911.modules.ModuleGardenMacro
 import net.minecraft.client.option.KeyBinding
 
 object KeySimulator {

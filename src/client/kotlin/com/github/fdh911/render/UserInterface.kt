@@ -5,6 +5,7 @@ import imgui.ImFont
 import imgui.ImGui
 import imgui.ImVec4
 import imgui.flag.ImGuiCond
+import imgui.flag.ImGuiWindowFlags
 import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
 import net.minecraft.client.MinecraftClient
@@ -17,27 +18,37 @@ object UserInterface {
     init {
         ImGui.createContext()
     }
-    private val imguiIO = ImGui.getIO().apply {
+    private val io = ImGui.getIO().apply {
         iniFilename = null
         logFilename = null
     }
-    private val imGuiGlfw = ImGuiImplGlfw().apply {
+    private val glfwImpl = ImGuiImplGlfw().apply {
         val windowHandle = MinecraftClient.getInstance().window.handle
         init(windowHandle, true)
     }
-    private val imGuiGl3 = ImGuiImplGl3().apply {
+    private val gl3Impl = ImGuiImplGl3().apply {
         init("#version 150")
     }
-    private val imGuiFont: ImFont
+
+    private val smallFont: ImFont
+    private val largeFont: ImFont
 
     init {
-        val classPath = UserInterface::class.java.getResourceAsStream("/fonts/Roboto-Light.ttf")
-            ?: throw RuntimeException("Could not open font file")
-        val tempFile = File.createTempFile("imgui", "font")
-        tempFile.writeBytes(classPath.readAllBytes())
-        imGuiFont = imguiIO.fonts.addFontFromFileTTF(tempFile.absolutePath, 18.0f)
-        imguiIO.fonts.build()
-        tempFile.delete()
+        val classpathSmall = UserInterface::class.java.getResourceAsStream("/fonts/0xProtoNerdFont-Regular.ttf")
+            ?: throw RuntimeException("Could not open small font file")
+        val tempfileSmall = File.createTempFile("imgui", "smallfont")
+        tempfileSmall.writeBytes(classpathSmall.readAllBytes())
+        smallFont = io.fonts.addFontFromFileTTF(tempfileSmall.absolutePath, 20.0f)
+        tempfileSmall.delete()
+
+        val classpathLarge = UserInterface::class.java.getResourceAsStream("/fonts/0xProtoNerdFont-Bold.ttf")
+            ?: throw RuntimeException("Could not open large font file")
+        val tempfileLarge = File.createTempFile("imgui", "largefont")
+        tempfileLarge.writeBytes(classpathLarge.readAllBytes())
+        largeFont = io.fonts.addFontFromFileTTF(tempfileLarge.absolutePath, 28.0f)
+        tempfileLarge.delete()
+
+        io.fonts.build()
 
         val colors = arrayOf(
             ImVec4(1.00f, 1.00f, 1.00f, 1.00f),
@@ -104,10 +115,9 @@ object UserInterface {
     }
 
     fun render(block: () -> Unit) {
-        imGuiGl3.newFrame()
-        imGuiGlfw.newFrame()
+        gl3Impl.newFrame()
+        glfwImpl.newFrame()
         ImGui.newFrame()
-        ImGui.pushFont(imGuiFont)
 
         val state = GLState2().apply {
             saveProgramAndBuffers()
@@ -125,9 +135,8 @@ object UserInterface {
 
         block()
 
-        ImGui.popFont()
         ImGui.render()
-        imGuiGl3.renderDrawData(ImGui.getDrawData())
+        gl3Impl.renderDrawData(ImGui.getDrawData())
     }
 
     private var windowStkCount = 0
@@ -135,14 +144,23 @@ object UserInterface {
     fun newWindow(name: String, block: () -> Unit) {
         if(windowStkCount > 0) {
             val pos = ImGui.getWindowPos()
-            val size = ImGui.getWindowSize()
-            ImGui.setNextWindowPos(pos.x + size.x, pos.y, ImGuiCond.FirstUseEver)
+            ImGui.setNextWindowPos(pos.x + 10.0f, pos.y + 10.0f, ImGuiCond.FirstUseEver)
         }
 
         windowStkCount++
-        ImGui.begin(name)
 
+        ImGui.pushFont(largeFont)
+        val bordering = 2.0f * ImGui.getStyle().windowPaddingX
+        val arrowWidth = ImGui.getFontSize() + 2.0f * ImGui.getStyle().framePaddingX
+        val titleWidth = ImGui.calcTextSize(name).x
+        val minWindowWidth = titleWidth + arrowWidth + bordering
+        ImGui.setNextWindowSizeConstraints(minWindowWidth, 0.0f, Float.MAX_VALUE, Float.MAX_VALUE)
+        ImGui.begin(name, ImGuiWindowFlags.NoResize)
+        ImGui.popFont()
+
+        ImGui.pushFont(smallFont)
         block()
+        ImGui.popFont()
 
         ImGui.end()
         windowStkCount--
@@ -155,14 +173,14 @@ object UserInterface {
 
         override fun init() {
             super.init()
-            imguiIO.appAcceptingEvents = true
-            imguiIO.clearEventsQueue()
+            io.appAcceptingEvents = true
+            io.clearEventsQueue()
         }
 
         override fun removed() {
             super.removed()
-            imguiIO.appAcceptingEvents = false
-            imguiIO.clearEventsQueue()
+            io.appAcceptingEvents = false
+            io.clearEventsQueue()
         }
 
         override fun render(context: DrawContext?, mouseX: Int, mouseY: Int, delta: Float) {

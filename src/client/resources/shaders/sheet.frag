@@ -1,14 +1,28 @@
 #version 450 core
 
-uniform int spacing = 25;
+uniform int spacing = 50;
 
 in vec2 fragTexCoord;
 
 out vec4 FragColor;
 
+const vec2 corners[4] = vec2[](
+    vec2(0, 0),
+    vec2(0, spacing),
+    vec2(spacing, spacing),
+    vec2(spacing, 0)
+);
+
 void main() {
-    if(int(gl_FragCoord.x) % spacing == 0 || int(gl_FragCoord.y) % spacing == 0)
-        FragColor = vec4(0.2f, 0.2f, 0.2f, 0.7f);
-    else
-        FragColor = vec4(0.1f, 0.1f, 0.1f, 0.7f);
+    vec2 coords = vec2(gl_FragCoord);
+    while(coords.x > spacing) coords.x -= spacing;
+    while(coords.y > spacing) coords.y -= spacing;
+
+    vec4 finalColor = vec4(0.05f, 0.05f, 0.05f, 0.8f);
+    for(int i = 0; i < 4; i++) {
+        if(distance(corners[i], coords) <= 2.0f)
+            finalColor = vec4(0.15f, 0.15f, 0.15f, 0.8f);
+    }
+
+    FragColor = finalColor;
 }

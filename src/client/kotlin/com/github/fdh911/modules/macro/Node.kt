@@ -1,5 +1,6 @@
-package com.github.fdh911.modules.garden
+package com.github.fdh911.modules.macro
 
+import com.github.fdh911.modules.macro.nodeactions.INodeAction
 import net.minecraft.util.math.BlockPos
 
 data class Node(var pos: BlockPos, var name: String, val actions: MutableList<INodeAction> = mutableListOf()): Cloneable {

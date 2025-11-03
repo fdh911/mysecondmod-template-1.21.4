@@ -1,6 +1,6 @@
 package com.github.fdh911.mixin.client;
 
-import com.github.fdh911.modules.garden.MouseLock;
+import com.github.fdh911.modules.macro.MouseLock;
 import net.minecraft.client.Mouse;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

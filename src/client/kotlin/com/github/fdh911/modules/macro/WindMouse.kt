@@ -1,4 +1,4 @@
-package com.github.fdh911.modules.garden
+package com.github.fdh911.modules.macro
 
 import kotlinx.coroutines.delay
 import net.minecraft.client.MinecraftClient
@@ -12,7 +12,7 @@ import kotlin.random.Random
     https://ben.land/post/2021/04/25/windmouse-human-mouse-movement/
  */
 object WindMouse {
-    private const val G_0 = 9.0f
+    private const val G_0 = 2.0f
     private const val W_0 = 3.0f
     private const val D_0 = 12.0f
     private const val SQRT_3 = 1.732050f

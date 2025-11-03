@@ -1,9 +1,9 @@
-package com.github.fdh911.modules.garden
+package com.github.fdh911.modules.macro.nodeactions
 
+import com.github.fdh911.modules.macro.WindMouse
 import com.github.fdh911.render.UserInterface
 import imgui.ImGui
 import imgui.type.ImFloat
-import net.minecraft.client.MinecraftClient
 
 class NodeActionRotateDelta(private var yawDelta: ImFloat = ImFloat(0.0f), private var pitchDelta: ImFloat = ImFloat(0.0f)): INodeAction {
     override suspend fun execute() {

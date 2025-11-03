@@ -1,4 +1,4 @@
-package com.github.fdh911.skyblock
+package com.github.fdh911.state
 
 import com.github.fdh911.modules.Module
 import imgui.ImGui
