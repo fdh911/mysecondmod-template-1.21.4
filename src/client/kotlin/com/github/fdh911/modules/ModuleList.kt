@@ -1,5 +1,6 @@
 package com.github.fdh911.modules
 
+import com.github.fdh911.render.Unicodes
 import com.github.fdh911.render.UserInterface
 import com.github.fdh911.state.SkyblockState
 import imgui.ImGui
@@ -27,9 +28,9 @@ object ModuleList {
                 module.renderUpdate(ctx)
     }
 
-    fun renderUI() = UserInterface.newWindow("Modules") {
+    fun renderUI() = UserInterface.newWindow("${Unicodes.DUPLICATE} Modules") {
         for(module in modules)
-            if(ImGui.selectable(module.name)) {
+            if(ImGui.selectable("${Unicodes.REMOVE} ${module.name}")) {
                 if(toDisplay.contains(module))
                     toDisplay.remove(module)
                 else

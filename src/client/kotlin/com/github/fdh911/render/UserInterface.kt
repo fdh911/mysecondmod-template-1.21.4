@@ -2,6 +2,8 @@ package com.github.fdh911.render
 
 import com.github.fdh911.render.opengl.GLState2
 import imgui.ImFont
+import imgui.ImFontConfig
+import imgui.ImFontGlyphRangesBuilder
 import imgui.ImGui
 import imgui.ImVec4
 import imgui.flag.ImGuiCond
@@ -12,7 +14,6 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.Text
-import java.io.File
 
 object UserInterface {
     init {
@@ -34,19 +35,28 @@ object UserInterface {
     private val largeFont: ImFont
 
     init {
-        val classpathSmall = UserInterface::class.java.getResourceAsStream("/fonts/0xProtoNerdFont-Regular.ttf")
-            ?: throw RuntimeException("Could not open small font file")
-        val tempfileSmall = File.createTempFile("imgui", "smallfont")
-        tempfileSmall.writeBytes(classpathSmall.readAllBytes())
-        smallFont = io.fonts.addFontFromFileTTF(tempfileSmall.absolutePath, 20.0f)
-        tempfileSmall.delete()
+        fun loadMergedFont(baseFont: String, iconsFont: String, size: Float, range: ShortArray): ImFont {
+            val cfg = ImFontConfig()
+            val baseIS = object{}::class.java.getResourceAsStream("/fonts/$baseFont.ttf")
+                ?: throw RuntimeException("Could not open base font file $baseFont")
+            val iconsIS = object{}::class.java.getResourceAsStream("/fonts/$iconsFont.ttf")
+                ?: throw RuntimeException("Could not open icons font file $iconsFont")
+            val font = io.fonts.addFontFromMemoryTTF(baseIS.readAllBytes(), size, cfg, range)
+            cfg.mergeMode = true
+            io.fonts.addFontFromMemoryTTF(iconsIS.readAllBytes(), size, cfg, range)
+            baseIS.close()
+            iconsIS.close()
+            return font
+        }
 
-        val classpathLarge = UserInterface::class.java.getResourceAsStream("/fonts/0xProtoNerdFont-Bold.ttf")
-            ?: throw RuntimeException("Could not open large font file")
-        val tempfileLarge = File.createTempFile("imgui", "largefont")
-        tempfileLarge.writeBytes(classpathLarge.readAllBytes())
-        largeFont = io.fonts.addFontFromFileTTF(tempfileLarge.absolutePath, 28.0f)
-        tempfileLarge.delete()
+        val customRange = with(ImFontGlyphRangesBuilder()) {
+            addRanges(io.fonts.glyphRangesDefault)
+            addText(Unicodes.toString())
+            buildRanges()
+        }
+
+        smallFont = loadMergedFont("0xProtoNerdFont-Regular", "fa-regular-400", 20.0f, customRange)
+        largeFont = loadMergedFont("0xProtoNerdFont-Bold", "fa-solid-900", 28.0f, customRange)
 
         io.fonts.build()
 
