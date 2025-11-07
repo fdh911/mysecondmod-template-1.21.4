@@ -1,6 +1,6 @@
 package com.github.fdh911.modules.macro
 
-import com.github.fdh911.modules.macro.nodeactions.INodeAction
+import com.github.fdh911.modules.macro.nodeactions.NodeAction
 import com.github.fdh911.modules.macro.nodeactions.NodeActionKey
 import com.github.fdh911.modules.macro.nodeactions.NodeActionLockMouse
 import com.github.fdh911.modules.macro.nodeactions.NodeActionRotateDelta
@@ -8,102 +8,48 @@ import com.github.fdh911.modules.macro.nodeactions.NodeActionRotateExact
 import com.github.fdh911.modules.macro.nodeactions.NodeActionSendMessage
 import com.github.fdh911.modules.macro.nodeactions.NodeActionUnlockMouse
 import com.github.fdh911.modules.macro.nodeactions.NodeActionWait
-import imgui.type.ImFloat
-import imgui.type.ImInt
-import imgui.type.ImString
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.option.KeyBinding
-import net.minecraft.util.math.BlockPos
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
 import java.io.File
 
-class NodeScene(var name: String) {
+@Serializable
+class NodeScene(var name: String)
+{
     companion object {
-        fun loadFromFile(file: File): NodeScene {
-            val br = file.bufferedReader()
-            val name = br.readLine()
-            val scene = NodeScene(name)
-            val nodeCount = br.readLine().toInt()
-            repeat(nodeCount) {
-                val nodeName = br.readLine()
-                val nodeX = br.readLine().toInt()
-                val nodeY = br.readLine().toInt()
-                val nodeZ = br.readLine().toInt()
-                val nodeActionCnt = br.readLine().toInt()
-                val node = Node(BlockPos(nodeX, nodeY, nodeZ), nodeName)
-                repeat(nodeActionCnt) {
-                    val actionType = br.readLine()
-                    var action: INodeAction? = null
-                    if(actionType == "hold" || actionType == "press" || actionType == "release") {
-                        val keyTranslation = br.readLine()
-                        var nodeKey: KeyBinding? = null
-                        for(key in MinecraftClient.getInstance().options.allKeys)
-                            if(key.translationKey == keyTranslation) {
-                                nodeKey = key
-                                break
-                            }
-                        if(nodeKey == null)
-                            throw RuntimeException("No such key exists: $keyTranslation")
-                        val keyActionType = when(actionType) {
-                            "hold" -> NodeActionKey.Action.HOLD
-                            "press" -> NodeActionKey.Action.PRESS
-                            "release" -> NodeActionKey.Action.RELEASE
-                            else -> throw RuntimeException("Unknown action type: $actionType")
-                        }
-                        action = NodeActionKey(nodeKey, keyActionType)
-                    }
-                    action = when(actionType) {
-                        "hold" -> action
-                        "press" -> action
-                        "release" -> action
-                        "send" -> {
-                            val msg = br.readLine()
-                            NodeActionSendMessage(ImString().apply { set(msg) })
-                        }
-                        "wait" -> {
-                            val ms = br.readLine().toInt()
-                            NodeActionWait(ImInt(ms))
-                        }
-                        "rotateexact" -> {
-                            val yaw = br.readLine().toFloat()
-                            val pitch = br.readLine().toFloat()
-                            NodeActionRotateExact(ImFloat(yaw), ImFloat(pitch))
-                        }
-                        "rotatedelta" -> {
-                            val yawDelta = br.readLine().toFloat()
-                            val pitchDelta = br.readLine().toFloat()
-                            NodeActionRotateDelta(ImFloat(yawDelta), ImFloat(pitchDelta))
-                        }
-                        "lockMouse" -> NodeActionLockMouse()
-                        "unlockMouse" -> NodeActionUnlockMouse()
-                        else -> null
-                    }
-                    if(action == null)
-                        throw RuntimeException("Unknown action: $actionType")
-                    node.actions.add(action)
-                }
-                scene.nodeList.add(node)
+        val serializerModule = SerializersModule {
+            polymorphic(NodeAction::class) {
+                subclass(NodeActionKey::class, NodeActionKey.serializer())
+                subclass(NodeActionLockMouse::class, NodeActionLockMouse.serializer())
+                subclass(NodeActionUnlockMouse::class, NodeActionUnlockMouse.serializer())
+                subclass(NodeActionRotateExact::class, NodeActionRotateExact.serializer())
+                subclass(NodeActionRotateDelta::class, NodeActionRotateDelta.serializer())
+                subclass(NodeActionSendMessage::class, NodeActionSendMessage.serializer())
+                subclass(NodeActionWait::class, NodeActionWait.serializer())
             }
-            return scene
+        }
+
+        val json = Json {
+            serializersModule = serializerModule
+            prettyPrint = true
+            encodeDefaults = true
+        }
+
+        fun loadFromFile(file: File): NodeScene {
+            val objectJson = file.readText()
+            return json.decodeFromString<NodeScene>(objectJson)
         }
     }
 
     val nodeList = mutableListOf<Node>()
 
     fun saveToFile() {
-        val file = File("$name.mysecondmod.scene.txt")
+        val file = File("$name.msmscene.json")
         if(file.exists()) {
             file.delete()
             file.createNewFile()
         }
-        file.appendText("$name\n${nodeList.size}\n")
-        for(node in nodeList) {
-            file.appendText("${node.name}\n")
-            file.appendText("${node.pos.x}\n")
-            file.appendText("${node.pos.y}\n")
-            file.appendText("${node.pos.z}\n")
-            file.appendText("${node.actions.size}\n")
-            for(action in node.actions)
-                file.appendText("${action.fileFormat}\n")
-        }
+        file.writeText(json.encodeToString(serializer(), this))
     }
 }

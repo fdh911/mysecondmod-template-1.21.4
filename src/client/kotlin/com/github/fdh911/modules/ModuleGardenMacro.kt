@@ -1,6 +1,6 @@
 package com.github.fdh911.modules
 
-import com.github.fdh911.modules.macro.nodeactions.INodeAction
+import com.github.fdh911.modules.macro.nodeactions.NodeAction
 import com.github.fdh911.modules.macro.Node
 import com.github.fdh911.modules.macro.nodeactions.NodeActionLockMouse
 import com.github.fdh911.modules.macro.nodeactions.NodeActionRotateDelta
@@ -22,6 +22,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.math.BlockPos
@@ -36,10 +37,11 @@ import kotlin.math.min
 import kotlin.text.get
 
 @OptIn(DelicateCoroutinesApi::class)
-object ModuleGardenMacro: Module("Garden Macro") {
+object ModuleGardenMacro: Module("Garden Macro")
+{
     var currentScene: NodeScene? = null
     var currentNode: Node? = null
-    private val actionQueue: Queue<INodeAction> = LinkedList()
+    private val actionQueue: Queue<NodeAction> = LinkedList()
 
     init {
         GlobalScope.launch {
@@ -141,7 +143,7 @@ object ModuleGardenMacro: Module("Garden Macro") {
         var sceneCreation = false
         val sceneCreationNameEdit = ImString()
         var nodePtr: Node? = null
-        var actionPtr: INodeAction? = null
+        var actionPtr: NodeAction? = null
         val nodeNameEdit = ImString()
         val nodeX = ImInt()
         val nodeY = ImInt()
@@ -178,7 +180,7 @@ object ModuleGardenMacro: Module("Garden Macro") {
         else UIState.sceneCreation = false
 
         if(ImGui.button("Save scene")) {
-            currentScene!!.saveToFile()
+            currentScene?.saveToFile()
         }
         ImGui.sameLine()
         if(ImGui.button("Load scene") || UIState.sceneLoading) {
@@ -188,9 +190,12 @@ object ModuleGardenMacro: Module("Garden Macro") {
                 val files = File(".").listFiles()
                 for(i in files.indices) {
                     val subfile = files[i]
-                    if(!subfile.name.matches(".*mysecondmod[.]scene[.]txt".toRegex())) continue
-                    if(ImGui.selectable("${subfile.nameWithoutExtension}##_file$i")) {
-                        currentScene = NodeScene.Companion.loadFromFile(subfile)
+                    val fileSearchRegex = "(?<scenename>[^.]+)[.]msmscene[.]json".toRegex()
+                    val match = fileSearchRegex.matchEntire(subfile.name)
+                        ?: continue
+                    val sceneName = match.groups["scenename"]!!.value
+                    if(ImGui.selectable("$sceneName##_file$i")) {
+                        currentScene = NodeScene.loadFromFile(subfile)
                         UIState.sceneLoading = false
                     }
                 }
@@ -273,7 +278,7 @@ object ModuleGardenMacro: Module("Garden Macro") {
 
                 ImGui.setNextItemWidth(-Float.MIN_VALUE)
                 if(ImGui.collapsingHeader("Add a new action ")) {
-                    var actionToAdd: INodeAction? = null
+                    var actionToAdd: NodeAction? = null
                     ImGui.setNextItemWidth(-Float.MIN_VALUE)
                     if(ImGui.beginListBox("##_addActionList")) {
                         if(ImGui.selectable("Key action"))

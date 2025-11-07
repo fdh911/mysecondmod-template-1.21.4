@@ -4,28 +4,32 @@ import com.github.fdh911.modules.macro.WindMouse
 import com.github.fdh911.render.UserInterface
 import imgui.ImGui
 import imgui.type.ImFloat
+import kotlinx.serialization.Serializable
 
-class NodeActionRotateDelta(private var yawDelta: ImFloat = ImFloat(0.0f), private var pitchDelta: ImFloat = ImFloat(0.0f)): INodeAction {
+@Serializable
+class NodeActionRotateDelta(private var yawDelta: Float = 0.0f, private var pitchDelta: Float = 0.0f): NodeAction()
+{
     override suspend fun execute() {
-        WindMouse.rotateHeadDelta(yawDelta.get(), pitchDelta.get())
+        WindMouse.rotateHeadDelta(yawDelta, pitchDelta)
     }
 
     override fun renderUI(): Boolean {
         var keepRendering = true
         UserInterface.newWindow("Rotate by delta action") {
             ImGui.setWindowSize(0.0f, 0.0f)
-            ImGui.inputFloat("Yaw (delta)", yawDelta)
-            ImGui.inputFloat("Pitch (delta)", pitchDelta)
+            val yawImFloat = ImFloat(yawDelta)
+            val pitchImFloat = ImFloat(pitchDelta)
+            ImGui.inputFloat("Yaw (delta)", yawImFloat)
+            ImGui.inputFloat("Pitch (delta)", pitchImFloat)
+            yawDelta = yawImFloat.get()
+            pitchDelta = pitchImFloat.get()
             if(ImGui.button("Finish"))
                 keepRendering = false
         }
         return keepRendering
     }
 
-    override fun clone() = NodeActionRotateDelta(ImFloat(yawDelta.get()), ImFloat(pitchDelta.get()))
+    override fun clone() = NodeActionRotateDelta(yawDelta, pitchDelta)
 
-    override val fileFormat: String
-        get() = "rotatedelta\n${yawDelta.get()}\n${pitchDelta.get()}"
-
-    override fun toString() = "Rotate delta: ${yawDelta.get()} ${pitchDelta.get()}"
+    override fun toString() = "Rotate delta: $yawDelta $pitchDelta"
 }

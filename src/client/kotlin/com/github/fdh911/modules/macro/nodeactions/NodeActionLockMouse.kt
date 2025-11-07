@@ -1,8 +1,11 @@
 package com.github.fdh911.modules.macro.nodeactions
 
 import com.github.fdh911.modules.macro.MouseLock
+import kotlinx.serialization.Serializable
 
-class NodeActionLockMouse: INodeAction {
+@Serializable
+class NodeActionLockMouse: NodeAction()
+{
     override suspend fun execute() {
         MouseLock.isLocked = true
     }
@@ -12,9 +15,6 @@ class NodeActionLockMouse: INodeAction {
     }
 
     override fun clone() = NodeActionLockMouse()
-
-    override val fileFormat: String
-        get() = "lockMouse"
 
     override fun toString() = "Lock yaw & pitch"
 }

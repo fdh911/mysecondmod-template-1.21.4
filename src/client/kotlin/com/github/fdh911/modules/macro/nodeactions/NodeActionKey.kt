@@ -4,14 +4,15 @@ import com.github.fdh911.modules.macro.KeySimulator
 import com.github.fdh911.render.UserInterface
 import com.github.fdh911.utils.translate
 import imgui.ImGui
+import kotlinx.serialization.Serializable
 import net.minecraft.client.MinecraftClient
-import net.minecraft.client.option.KeyBinding
 import java.util.Locale.getDefault
 
+@Serializable
 class NodeActionKey(
-    private var keyToAffect: KeyBinding = MinecraftClient.getInstance().options.forwardKey,
+    private var kbTranslationKey: String = MinecraftClient.getInstance().options.forwardKey.translationKey,
     private var action: Action = Action.HOLD
-): INodeAction
+): NodeAction()
 {
     enum class Action(val string: String) {
         HOLD("hold"),
@@ -24,9 +25,9 @@ class NodeActionKey(
 
     override suspend fun execute() {
         when(action) {
-            Action.HOLD     -> KeySimulator.toHold.add(keyToAffect)
-            Action.RELEASE  -> KeySimulator.toRelease.add(keyToAffect)
-            Action.PRESS    -> KeySimulator.toPress.add(keyToAffect)
+            Action.HOLD     -> KeySimulator.hold(kbTranslationKey)
+            Action.RELEASE  -> KeySimulator.release(kbTranslationKey)
+            Action.PRESS    -> KeySimulator.press(kbTranslationKey)
         }
     }
 
@@ -34,14 +35,14 @@ class NodeActionKey(
         var keepRendering = true
         UserInterface.newWindow("${action.capitalizedString()} key action") {
             ImGui.separatorText("Currently selected")
-            ImGui.text(keyToAffect.translationKey.translate())
+            ImGui.text(kbTranslationKey.translate())
             ImGui.separatorText("Select another key")
             if(ImGui.beginListBox("##_possibleKeys")) {
                 val keyArray = MinecraftClient.getInstance().options.allKeys
                 for(i in keyArray.indices) {
-                    val key = keyArray[i]
-                    if(ImGui.selectable("${key.translationKey.translate()}##_key$i"))
-                        keyToAffect = key
+                    val key = keyArray[i].translationKey
+                    if(ImGui.selectable("${key.translate()}##_key$i"))
+                        kbTranslationKey = key
                 }
                 ImGui.endListBox()
             }
@@ -52,9 +53,7 @@ class NodeActionKey(
         return keepRendering
     }
 
-    override fun clone() = NodeActionKey(keyToAffect, action)
+    override fun clone() = NodeActionKey(kbTranslationKey, action)
 
-    override fun toString() = "${action.capitalizedString()}: ${keyToAffect.translationKey.translate()}"
-
-    override val fileFormat = "${action.string}\n${keyToAffect.translationKey}"
+    override fun toString() = "${action.capitalizedString()}: ${kbTranslationKey.translate()}"
 }
