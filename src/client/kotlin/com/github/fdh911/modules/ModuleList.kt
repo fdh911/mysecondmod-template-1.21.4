@@ -28,9 +28,9 @@ object ModuleList {
                 module.renderUpdate(ctx)
     }
 
-    fun renderUI() = UserInterface.newWindow("${Unicodes.DUPLICATE} Modules") {
+    fun renderUI() = UserInterface.newWindow("Modules") {
         for(module in modules)
-            if(ImGui.selectable("${Unicodes.REMOVE} ${module.name}")) {
+            if(ImGui.selectable(module.name)) {
                 if(toDisplay.contains(module))
                     toDisplay.remove(module)
                 else

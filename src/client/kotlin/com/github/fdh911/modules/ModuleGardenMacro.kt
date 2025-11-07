@@ -13,6 +13,7 @@ import com.github.fdh911.modules.macro.nodeactions.NodeActionUnlockMouse
 import com.github.fdh911.modules.macro.nodeactions.NodeActionWait
 import com.github.fdh911.modules.macro.NodeScene
 import com.github.fdh911.render.CuboidRenderer
+import com.github.fdh911.render.Unicodes
 import com.github.fdh911.render.UserInterface
 import com.github.fdh911.state.SkyblockState
 import imgui.ImGui
@@ -236,7 +237,7 @@ object ModuleGardenMacro: Module("Garden Macro") {
                     if(ImGui.button(node.name))
                         selectNodeInUI(node)
                     ImGui.sameLine()
-                    if(ImGui.button("dup")) {
+                    if(ImGui.button(Unicodes.DUPLICATE.s)) {
                         val clonedNode = node.clone()
                         val regex = "(?<name>.*) (?<number>[0-9]*)".toRegex()
                         val match = regex.matchEntire(clonedNode.name)
@@ -251,7 +252,7 @@ object ModuleGardenMacro: Module("Garden Macro") {
                         selectNodeInUI(clonedNode)
                     }
                     ImGui.sameLine()
-                    if(ImGui.button("rm")) {
+                    if(ImGui.button(Unicodes.REMOVE.s)) {
                         toRemove = i
                         selectNodeInUI(null)
                     }

@@ -6,7 +6,7 @@ in vec2 fragTexCoord;
 
 out vec4 FragColor;
 
-const vec2 corners[4] = vec2[](
+vec2 corners[4] = vec2[](
     vec2(0, 0),
     vec2(0, spacing),
     vec2(spacing, spacing),
