@@ -2,16 +2,14 @@ package com.github.fdh911.modules
 
 import com.github.fdh911.modules.macro.nodeactions.INodeAction
 import com.github.fdh911.modules.macro.Node
-import com.github.fdh911.modules.macro.nodeactions.NodeActionHoldKey
 import com.github.fdh911.modules.macro.nodeactions.NodeActionLockMouse
-import com.github.fdh911.modules.macro.nodeactions.NodeActionPressKey
-import com.github.fdh911.modules.macro.nodeactions.NodeActionReleaseKey
 import com.github.fdh911.modules.macro.nodeactions.NodeActionRotateDelta
 import com.github.fdh911.modules.macro.nodeactions.NodeActionRotateExact
 import com.github.fdh911.modules.macro.nodeactions.NodeActionSendMessage
 import com.github.fdh911.modules.macro.nodeactions.NodeActionUnlockMouse
 import com.github.fdh911.modules.macro.nodeactions.NodeActionWait
 import com.github.fdh911.modules.macro.NodeScene
+import com.github.fdh911.modules.macro.nodeactions.NodeActionKey
 import com.github.fdh911.render.CuboidRenderer
 import com.github.fdh911.render.Unicodes
 import com.github.fdh911.render.UserInterface
@@ -154,7 +152,6 @@ object ModuleGardenMacro: Module("Garden Macro") {
     }
 
     override fun renderUI() {
-        ImGui.setWindowSize(0.0f, 0.0f)
         ImGui.checkbox("Disable when outside garden", UIState.disableOutsideGarden)
         ImGui.checkbox("Disable on server close", UIState.disableOnServerClose)
         ImGui.separatorText("Scene")
@@ -279,12 +276,8 @@ object ModuleGardenMacro: Module("Garden Macro") {
                     var actionToAdd: INodeAction? = null
                     ImGui.setNextItemWidth(-Float.MIN_VALUE)
                     if(ImGui.beginListBox("##_addActionList")) {
-                        if(ImGui.selectable("Hold key"))
-                            actionToAdd = NodeActionHoldKey()
-                        if(ImGui.selectable("Press key"))
-                            actionToAdd = NodeActionPressKey()
-                        if(ImGui.selectable("Release key"))
-                            actionToAdd = NodeActionReleaseKey()
+                        if(ImGui.selectable("Key action"))
+                            actionToAdd = NodeActionKey()
                         if(ImGui.selectable("Send chat message"))
                             actionToAdd = NodeActionSendMessage()
                         if(ImGui.selectable("Wait"))

@@ -1,10 +1,8 @@
 package com.github.fdh911.modules.macro
 
 import com.github.fdh911.modules.macro.nodeactions.INodeAction
-import com.github.fdh911.modules.macro.nodeactions.NodeActionHoldKey
+import com.github.fdh911.modules.macro.nodeactions.NodeActionKey
 import com.github.fdh911.modules.macro.nodeactions.NodeActionLockMouse
-import com.github.fdh911.modules.macro.nodeactions.NodeActionPressKey
-import com.github.fdh911.modules.macro.nodeactions.NodeActionReleaseKey
 import com.github.fdh911.modules.macro.nodeactions.NodeActionRotateDelta
 import com.github.fdh911.modules.macro.nodeactions.NodeActionRotateExact
 import com.github.fdh911.modules.macro.nodeactions.NodeActionSendMessage
@@ -45,12 +43,13 @@ class NodeScene(var name: String) {
                             }
                         if(nodeKey == null)
                             throw RuntimeException("No such key exists: $keyTranslation")
-                        action = when(actionType) {
-                            "hold" -> NodeActionHoldKey(nodeKey)
-                            "press" -> NodeActionPressKey(nodeKey)
-                            "release" -> NodeActionReleaseKey(nodeKey)
-                            else -> null
+                        val keyActionType = when(actionType) {
+                            "hold" -> NodeActionKey.Action.HOLD
+                            "press" -> NodeActionKey.Action.PRESS
+                            "release" -> NodeActionKey.Action.RELEASE
+                            else -> throw RuntimeException("Unknown action type: $actionType")
                         }
+                        action = NodeActionKey(nodeKey, keyActionType)
                     }
                     action = when(actionType) {
                         "hold" -> action
