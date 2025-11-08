@@ -2,11 +2,9 @@ package com.github.fdh911.modules.macro
 
 import com.github.fdh911.modules.macro.nodeactions.NodeAction
 import com.github.fdh911.modules.macro.nodeactions.NodeActionKey
-import com.github.fdh911.modules.macro.nodeactions.NodeActionLockMouse
-import com.github.fdh911.modules.macro.nodeactions.NodeActionRotateDelta
-import com.github.fdh911.modules.macro.nodeactions.NodeActionRotateExact
+import com.github.fdh911.modules.macro.nodeactions.NodeActionMouselock
+import com.github.fdh911.modules.macro.nodeactions.NodeActionRotate
 import com.github.fdh911.modules.macro.nodeactions.NodeActionSendMessage
-import com.github.fdh911.modules.macro.nodeactions.NodeActionUnlockMouse
 import com.github.fdh911.modules.macro.nodeactions.NodeActionWait
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -21,16 +19,15 @@ class NodeScene(var name: String)
         val serializerModule = SerializersModule {
             polymorphic(NodeAction::class) {
                 subclass(NodeActionKey::class, NodeActionKey.serializer())
-                subclass(NodeActionLockMouse::class, NodeActionLockMouse.serializer())
-                subclass(NodeActionUnlockMouse::class, NodeActionUnlockMouse.serializer())
-                subclass(NodeActionRotateExact::class, NodeActionRotateExact.serializer())
-                subclass(NodeActionRotateDelta::class, NodeActionRotateDelta.serializer())
+                subclass(NodeActionMouselock::class, NodeActionMouselock.serializer())
+                subclass(NodeActionRotate::class, NodeActionRotate.serializer())
                 subclass(NodeActionSendMessage::class, NodeActionSendMessage.serializer())
                 subclass(NodeActionWait::class, NodeActionWait.serializer())
             }
         }
 
         val json = Json {
+            classDiscriminator = "ACTIONTYPE"
             serializersModule = serializerModule
             prettyPrint = true
             encodeDefaults = true

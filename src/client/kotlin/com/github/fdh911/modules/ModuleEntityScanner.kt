@@ -1,7 +1,8 @@
 package com.github.fdh911.modules
 
 import com.github.fdh911.render.CuboidRenderer
-import com.github.fdh911.render.UserInterface
+import com.github.fdh911.ui.UI
+import com.github.fdh911.ui.UIWindow
 import imgui.ImGui
 import imgui.type.ImBoolean
 import imgui.type.ImString
@@ -90,25 +91,14 @@ object ModuleEntityScanner : Module("Entity Scanner") {
     private val regexText = ImString()
     private var selectedRegex = 0
 
-    override fun renderUI() {
+    override fun UIWindow.setWindowContents() {
         ImGui.checkbox("Limit the radius?", limitRadius)
         if(limitRadius.get()) {
             ImGui.sliderInt("Lower bound", lowerBound, 1, upperBound[0])
             ImGui.sliderInt("Upper bound", upperBound, lowerBound[0], 256)
         }
 
-        UserInterface.newWindow("Detected entities") {
-            ImGui.text("Detected entities")
-            ImGui.setNextItemWidth(-Float.MIN_VALUE)
-            if(ImGui.beginListBox("##")) {
-                for((dist, entity) in savedEntityList) {
-                    val name = entity.displayName?.string?.replace(textModifiersRegex, "") ?: "Unnamed"
-                    if(ImGui.selectable("(${dist}m) $name"))
-                        individualEntity = entity
-                }
-                ImGui.endListBox()
-            }
-        }
+        + detectedEntitiesWindow
 
         if(ImGui.collapsingHeader("Regex filtering")) {
             ImGui.text("Entity name should fit at least one regex:")
@@ -132,20 +122,18 @@ object ModuleEntityScanner : Module("Entity Scanner") {
                     regexList.removeAt(selectedRegex)
             }
         }
+    }
 
-        if(individualEntity != null) with(individualEntity!!) {
-            UserInterface.newWindow("Individual entity") {
-                ImGui.text("Name: ${displayName?.string ?: "Unnamed"}")
-                ImGui.text("Type: $type")
-                ImGui.text("Position: ${x.round(1)} ${y.round(1)} ${z.round(1)}")
-                if(this is LivingEntity) {
-                    ImGui.text("Health: $health")
-                    ImGui.text("Helmet: ${getEquippedStack(EquipmentSlot.HEAD)}")
-                    ImGui.text("Chestplate: ${getEquippedStack(EquipmentSlot.BODY)}")
-                    ImGui.text("Leggings: ${getEquippedStack(EquipmentSlot.LEGS)}")
-                    ImGui.text("Boots: ${getEquippedStack(EquipmentSlot.FEET)}")
-                }
+    val detectedEntitiesWindow = UIWindow("Detected entities") {
+        ImGui.text("Detected entities")
+        ImGui.setNextItemWidth(-Float.MIN_VALUE)
+        if(ImGui.beginListBox("##")) {
+            for((dist, entity) in savedEntityList) {
+                val name = entity.displayName?.string?.replace(textModifiersRegex, "") ?: "Unnamed"
+                if(ImGui.selectable("(${dist}m) $name"))
+                    individualEntity = entity
             }
+            ImGui.endListBox()
         }
     }
 
@@ -160,8 +148,4 @@ object ModuleEntityScanner : Module("Entity Scanner") {
 
     private operator fun Vector3f.plus(other: Vector3f): Vector3f = add(other)
     private operator fun Vector3f.minus(other: Vector3f): Vector3f = sub(other)
-    private fun Double.round(digits: Int): Double {
-        val p = 10.0.pow(digits)
-        return (this * p).toLong().toDouble() / p
-    }
 }

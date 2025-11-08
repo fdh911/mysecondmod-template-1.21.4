@@ -1,6 +1,7 @@
 package com.github.fdh911.state
 
 import com.github.fdh911.modules.Module
+import com.github.fdh911.ui.UIWindow
 import imgui.ImGui
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 
@@ -104,7 +105,7 @@ object SkyblockState: Module("Skyblock State") {
 
     override fun renderUpdate(ctx: WorldRenderContext) { }
 
-    override fun renderUI() {
+    override fun UIWindow.setWindowContents() {
         ImGui.separatorText("Basic")
         ImGui.text("Is in skyblock: $isInSkyblock")
         ImGui.text("Server closing: $isServerClosing")

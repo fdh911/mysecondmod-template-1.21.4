@@ -2,12 +2,11 @@ package com.github.fdh911
 
 import com.github.fdh911.io.Keybinds
 import com.github.fdh911.modules.ModuleList
-import com.github.fdh911.render.UserInterface
+import com.github.fdh911.ui.UI
 import com.github.fdh911.modules.ModuleGardenMacro
 import com.github.fdh911.modules.macro.KeySimulator
 import com.github.fdh911.modules.macro.MouseLock
 import com.github.fdh911.render.opengl.GLState2
-import imgui.ImGui
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
@@ -20,10 +19,10 @@ object MySecondModClient : ClientModInitializer {
 		val mc = MinecraftClient.getInstance()
 
 		Keybinds.register("Open / Close UI", GLFW.GLFW_KEY_J) {
-			if(mc.currentScreen === UserInterface.MCScreen)
+			if(mc.currentScreen === UI.MCScreen)
 				mc.setScreen(null)
 			else
-				mc.setScreen(UserInterface.MCScreen)
+				mc.setScreen(UI.MCScreen)
 		}
 
         // This should be removed at some point
@@ -52,10 +51,10 @@ object MySecondModClient : ClientModInitializer {
 			MouseLock.update()
 		}
 
-		UserInterface.MCScreen.onRender {
+		UI.MCScreen.onRender {
 			val state = GLState2().apply { saveAll() }
-            UserInterface.render {
-                ModuleList.renderUI()
+            UI.render {
+                ModuleList.window.render()
             }
 			state.restoreAll()
 		}

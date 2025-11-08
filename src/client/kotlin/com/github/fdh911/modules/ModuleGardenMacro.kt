@@ -2,17 +2,15 @@ package com.github.fdh911.modules
 
 import com.github.fdh911.modules.macro.nodeactions.NodeAction
 import com.github.fdh911.modules.macro.Node
-import com.github.fdh911.modules.macro.nodeactions.NodeActionLockMouse
-import com.github.fdh911.modules.macro.nodeactions.NodeActionRotateDelta
-import com.github.fdh911.modules.macro.nodeactions.NodeActionRotateExact
 import com.github.fdh911.modules.macro.nodeactions.NodeActionSendMessage
-import com.github.fdh911.modules.macro.nodeactions.NodeActionUnlockMouse
 import com.github.fdh911.modules.macro.nodeactions.NodeActionWait
 import com.github.fdh911.modules.macro.NodeScene
 import com.github.fdh911.modules.macro.nodeactions.NodeActionKey
+import com.github.fdh911.modules.macro.nodeactions.NodeActionMouselock
+import com.github.fdh911.modules.macro.nodeactions.NodeActionRotate
 import com.github.fdh911.render.CuboidRenderer
 import com.github.fdh911.render.Unicodes
-import com.github.fdh911.render.UserInterface
+import com.github.fdh911.ui.UIWindow
 import com.github.fdh911.state.SkyblockState
 import imgui.ImGui
 import imgui.type.ImBoolean
@@ -22,7 +20,6 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.math.BlockPos
@@ -140,7 +137,6 @@ object ModuleGardenMacro: Module("Garden Macro")
     }
 
     private object UIState {
-        var sceneCreation = false
         val sceneCreationNameEdit = ImString()
         var nodePtr: Node? = null
         var actionPtr: NodeAction? = null
@@ -148,69 +144,34 @@ object ModuleGardenMacro: Module("Garden Macro")
         val nodeX = ImInt()
         val nodeY = ImInt()
         val nodeZ = ImInt()
-        var sceneLoading = false
         val disableOutsideGarden = ImBoolean(true)
         val disableOnServerClose = ImBoolean(true)
     }
 
-    override fun renderUI() {
+    override fun UIWindow.setWindowContents() {
         ImGui.checkbox("Disable when outside garden", UIState.disableOutsideGarden)
         ImGui.checkbox("Disable on server close", UIState.disableOnServerClose)
         ImGui.separatorText("Scene")
         ImGui.text("Current: ${currentScene?.name ?: "None"}")
         ImGui.setNextItemWidth(-Float.MIN_VALUE)
-        if(ImGui.button("New scene") || UIState.sceneCreation) {
-            UIState.sceneCreation = true
-            UserInterface.newWindow("Create a new scene") {
-                ImGui.setWindowSize(0.0f, 0.0f)
-                ImGui.inputText("##_1", UIState.sceneCreationNameEdit)
-                ImGui.setNextItemWidth(-Float.MIN_VALUE)
-                if(ImGui.button("Create scene")) {
-                    val sceneName = if(UIState.sceneCreationNameEdit.get() == "")
-                        "Unnamed"
-                    else
-                        UIState.sceneCreationNameEdit.get()
-                    currentScene = NodeScene(sceneName)
-                    UIState.sceneCreation = false
-                }
-                if(ImGui.button("Cancel"))
-                    UIState.sceneCreation = false
-            }
-        }
-        else UIState.sceneCreation = false
 
-        if(ImGui.button("Save scene")) {
+        if(ImGui.button("New scene"))
+            + sceneCreationWindow
+
+        if(ImGui.button("Save scene"))
             currentScene?.saveToFile()
-        }
-        ImGui.sameLine()
-        if(ImGui.button("Load scene") || UIState.sceneLoading) {
-            UIState.sceneLoading = true
-            UserInterface.newWindow("Choose file") {
-                ImGui.setWindowSize(0.0f, 0.0f)
-                val files = File(".").listFiles()
-                for(i in files.indices) {
-                    val subfile = files[i]
-                    val fileSearchRegex = "(?<scenename>[^.]+)[.]msmscene[.]json".toRegex()
-                    val match = fileSearchRegex.matchEntire(subfile.name)
-                        ?: continue
-                    val sceneName = match.groups["scenename"]!!.value
-                    if(ImGui.selectable("$sceneName##_file$i")) {
-                        currentScene = NodeScene.loadFromFile(subfile)
-                        UIState.sceneLoading = false
-                    }
-                }
-                if(ImGui.button("Cancel")) {
-                    UIState.sceneLoading = false
-                }
-            }
-        }
 
-        if(currentScene == null) return
+        if(ImGui.button("Load scene"))
+            + sceneLoadingWindow
+
+        if(currentScene == null)
+            return
 
         val scene = currentScene!!
 
-        val selectNodeInUI = {
+        val selectNodeInUI: UIWindow.(Node?) -> Unit = {
             node: Node? ->
+
             UIState.nodePtr = node
             if(node != null) {
                 UIState.nodeNameEdit.set(node.name)
@@ -218,6 +179,8 @@ object ModuleGardenMacro: Module("Garden Macro")
                 UIState.nodeY.set(node.pos.y)
                 UIState.nodeZ.set(node.pos.z)
             }
+
+            + nodeEditorWindow
         }
 
         ImGui.separatorText("Nodes")
@@ -265,74 +228,99 @@ object ModuleGardenMacro: Module("Garden Macro")
         }
         if(toRemove != -1)
             scene.nodeList.removeAt(toRemove)
+    }
 
-        if(UIState.nodePtr != null) {
-            val node = UIState.nodePtr!!
+    private val sceneCreationWindow = UIWindow("New scene") {
+        ImGui.inputText("##_1", UIState.sceneCreationNameEdit)
+        ImGui.setNextItemWidth(-Float.MIN_VALUE)
 
-            UserInterface.newWindow("Edit node") {
-                ImGui.setWindowSize(0.0f, 0.0f)
-                ImGui.inputText("##_3", UIState.nodeNameEdit)
-                ImGui.inputInt("X", UIState.nodeX)
-                ImGui.inputInt("Y", UIState.nodeY)
-                ImGui.inputInt("Z", UIState.nodeZ)
+        if(ImGui.button("Create scene")) {
+            val sceneName = if(UIState.sceneCreationNameEdit.get() == "")
+                "Unnamed"
+            else
+                UIState.sceneCreationNameEdit.get()
 
-                ImGui.setNextItemWidth(-Float.MIN_VALUE)
-                if(ImGui.collapsingHeader("Add a new action ")) {
-                    var actionToAdd: NodeAction? = null
-                    ImGui.setNextItemWidth(-Float.MIN_VALUE)
-                    if(ImGui.beginListBox("##_addActionList")) {
-                        if(ImGui.selectable("Key action"))
-                            actionToAdd = NodeActionKey()
-                        if(ImGui.selectable("Send chat message"))
-                            actionToAdd = NodeActionSendMessage()
-                        if(ImGui.selectable("Wait"))
-                            actionToAdd = NodeActionWait()
-                        if(ImGui.selectable("Rotate exact"))
-                            actionToAdd = NodeActionRotateExact()
-                        if(ImGui.selectable("Rotate delta"))
-                            actionToAdd = NodeActionRotateDelta()
-                        if(ImGui.selectable("Lock yaw & pitch"))
-                            actionToAdd = NodeActionLockMouse()
-                        if(ImGui.selectable("Unlock yaw & pitch"))
-                            actionToAdd = NodeActionUnlockMouse()
-                        ImGui.endListBox()
-                    }
-                    if(actionToAdd != null) {
-                        node.actions.add(actionToAdd)
-                        UIState.actionPtr = actionToAdd
-                    }
-                }
+            currentScene = NodeScene(sceneName)
+        }
+    }
 
-                ImGui.setNextItemWidth(-Float.MIN_VALUE)
-                if(ImGui.collapsingHeader("Current actions")) {
-                    ImGui.setNextItemWidth(-Float.MIN_VALUE)
-                    if(ImGui.beginListBox("##_4")) {
-                        for(i in node.actions.indices) {
-                            val action = node.actions[i]
-                            if(ImGui.selectable("${action}##action$i")) {
-                                UIState.actionPtr = action
-                            }
-                        }
-                        ImGui.endListBox()
-                    }
-                }
+    private val sceneLoadingWindow = UIWindow("Load scene") {
+        val directory = File(".").listFiles()
 
-                if(UIState.actionPtr?.renderUI() != true)
-                    UIState.actionPtr = null
+        for(i in directory.indices) {
+            val file = directory[i]
 
-                val updatedPos = BlockPos(
-                    UIState.nodeX.get(),
-                    UIState.nodeY.get(),
-                    UIState.nodeZ.get(),
-                )
+            val name = "(?<scenename>[^.]+)[.]msmscene[.]json".toRegex()
+                .matchEntire(file.name)
+                ?.groups
+                ?.get("scenename")
+                ?.value
+                ?:continue
 
-                node.name = UIState.nodeNameEdit.get()
-                node.pos = updatedPos
+            ImGui.pushID(i)
+            if(ImGui.selectable(name)) {
+                currentScene = NodeScene.loadFromFile(file)
+                closeThisWindow()
+            }
+            ImGui.popID()
+        }
+    }
 
-                ImGui.setNextItemWidth(-Float.MIN_VALUE)
-                if(ImGui.button("Finish"))
-                    UIState.nodePtr = null
+    private val nodeEditorWindow = UIWindow("Edit node") {
+        val node = UIState.nodePtr!!
+
+        ImGui.inputText("##_3", UIState.nodeNameEdit)
+        ImGui.inputInt("X", UIState.nodeX)
+        ImGui.inputInt("Y", UIState.nodeY)
+        ImGui.inputInt("Z", UIState.nodeZ)
+
+        ImGui.setNextItemWidth(-Float.MIN_VALUE)
+        if(ImGui.collapsingHeader("Add a new action ")) {
+            var actionToAdd: NodeAction? = null
+            ImGui.setNextItemWidth(-Float.MIN_VALUE)
+            if(ImGui.beginListBox("##_addActionList")) {
+                if(ImGui.selectable("Key action"))
+                    actionToAdd = NodeActionKey()
+                if(ImGui.selectable("Send chat message"))
+                    actionToAdd = NodeActionSendMessage()
+                if(ImGui.selectable("Wait"))
+                    actionToAdd = NodeActionWait()
+                if(ImGui.selectable("Rotation"))
+                    actionToAdd = NodeActionRotate()
+                if(ImGui.selectable("Lock / unlock mouse"))
+                    actionToAdd = NodeActionMouselock()
+                ImGui.endListBox()
+            }
+            if(actionToAdd != null) {
+                node.actions.add(actionToAdd)
+                UIState.actionPtr = actionToAdd
             }
         }
+
+        ImGui.setNextItemWidth(-Float.MIN_VALUE)
+        if(ImGui.collapsingHeader("Current actions")) {
+            ImGui.setNextItemWidth(-Float.MIN_VALUE)
+            if(ImGui.beginListBox("##_4")) {
+                for(i in node.actions.indices) {
+                    val action = node.actions[i]
+                    if(ImGui.selectable("${action}##action$i")) {
+                        UIState.actionPtr = action
+                        + action.getEditorWindow()
+                    }
+                }
+                ImGui.endListBox()
+            }
+        }
+
+        val updatedPos = BlockPos(
+            UIState.nodeX.get(),
+            UIState.nodeY.get(),
+            UIState.nodeZ.get(),
+        )
+
+        node.name = UIState.nodeNameEdit.get()
+        node.pos = updatedPos
+
+        ImGui.setNextItemWidth(-Float.MIN_VALUE)
     }
 }

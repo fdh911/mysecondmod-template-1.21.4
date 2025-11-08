@@ -1,7 +1,8 @@
 package com.github.fdh911.modules
 
-import com.github.fdh911.render.UserInterface
+import com.github.fdh911.ui.UI
 import com.github.fdh911.state.SkyblockState
+import com.github.fdh911.ui.UIWindow
 import imgui.ImGui
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 
@@ -12,8 +13,6 @@ object ModuleList {
         ModuleNoPause,
         SkyblockState,
     )
-
-    private val toDisplay = mutableSetOf<Module>()
 
     fun update() {
         for(module in modules)
@@ -27,19 +26,9 @@ object ModuleList {
                 module.renderUpdate(ctx)
     }
 
-    fun renderUI() = UserInterface.newWindow("Modules") {
+    val window = UIWindow("Modules") {
         for(module in modules)
-            if(ImGui.selectable(module.name)) {
-                if(toDisplay.contains(module))
-                    toDisplay.remove(module)
-                else
-                    toDisplay.add(module)
-            }
-        for(module in toDisplay) {
-            UserInterface.newWindow(module.name) {
-                module.renderToggleUI()
-                module.renderUI()
-            }
-        }
+            if(ImGui.selectable(module.name))
+                + module.getWindow()
     }
 }

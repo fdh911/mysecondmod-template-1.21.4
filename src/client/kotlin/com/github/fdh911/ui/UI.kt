@@ -1,13 +1,13 @@
-package com.github.fdh911.render
+package com.github.fdh911.ui
 
+import com.github.fdh911.render.OverlayRender
+import com.github.fdh911.render.Unicodes
 import com.github.fdh911.render.opengl.GLState2
 import imgui.ImFont
 import imgui.ImFontConfig
 import imgui.ImFontGlyphRangesBuilder
 import imgui.ImGui
 import imgui.ImVec4
-import imgui.flag.ImGuiCond
-import imgui.flag.ImGuiWindowFlags
 import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
 import net.minecraft.client.MinecraftClient
@@ -15,7 +15,7 @@ import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.Text
 
-object UserInterface {
+object UI {
     init {
         ImGui.createContext()
     }
@@ -31,8 +31,8 @@ object UserInterface {
         init("#version 150")
     }
 
-    private val smallFont: ImFont
-    private val largeFont: ImFont
+    val smallFont: ImFont
+    val largeFont: ImFont
 
     init {
         fun loadMergedFont(baseFont: String, iconsFont: String, size: Float, range: ShortArray): ImFont {
@@ -51,7 +51,7 @@ object UserInterface {
 
         val customRange = with(ImFontGlyphRangesBuilder()) {
             addRanges(io.fonts.glyphRangesDefault)
-            addText(Unicodes.toString())
+            addText(Unicodes.Companion.toString())
             buildRanges()
         }
 
@@ -147,33 +147,6 @@ object UserInterface {
 
         ImGui.render()
         gl3Impl.renderDrawData(ImGui.getDrawData())
-    }
-
-    private var windowStkCount = 0
-
-    fun newWindow(name: String, block: () -> Unit) {
-        if(windowStkCount > 0) {
-            val pos = ImGui.getWindowPos()
-            ImGui.setNextWindowPos(pos.x + 10.0f, pos.y + 10.0f, ImGuiCond.FirstUseEver)
-        }
-
-        windowStkCount++
-
-        ImGui.pushFont(largeFont)
-        val bordering = 2.0f * ImGui.getStyle().windowPaddingX
-        val arrowWidth = ImGui.getFontSize() + 2.0f * ImGui.getStyle().framePaddingX
-        val titleWidth = ImGui.calcTextSize(name).x
-        val minWindowWidth = titleWidth + arrowWidth + bordering
-        ImGui.setNextWindowSizeConstraints(minWindowWidth, 0.0f, Float.MAX_VALUE, Float.MAX_VALUE)
-        ImGui.begin(name, ImGuiWindowFlags.NoResize)
-        ImGui.popFont()
-
-        ImGui.pushFont(smallFont)
-        block()
-        ImGui.popFont()
-
-        ImGui.end()
-        windowStkCount--
     }
 
     object MCScreen : Screen(Text.empty()) {
