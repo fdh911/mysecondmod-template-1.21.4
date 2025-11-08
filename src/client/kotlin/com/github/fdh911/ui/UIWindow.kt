@@ -1,6 +1,9 @@
 package com.github.fdh911.ui
 
 import imgui.ImGui
+import imgui.ImVec2
+import imgui.flag.ImGuiCond
+import imgui.flag.ImGuiConfigFlags
 import imgui.flag.ImGuiWindowFlags
 import imgui.type.ImBoolean
 
@@ -53,12 +56,20 @@ open class UIWindow(
             ImGui.popFont()
         }
 
+        val windowPosition = ImGui.getWindowPos()
+        val childPosition = ImVec2(windowPosition.x + 15.0f, windowPosition.y + 15.0f)
+
         ImGui.popFont()
         ImGui.end()
 
         children
-            .filter { (_, window) -> !window.render() }
-            .forEach { (title, _) -> children.remove(title) }
+            .filter { (_, window) ->
+                ImGui.setNextWindowPos(childPosition, ImGuiCond.FirstUseEver)
+                !window.render()
+            }
+            .forEach { (title, _) ->
+                children.remove(title)
+            }
 
         return true
     }

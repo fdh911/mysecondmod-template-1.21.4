@@ -27,8 +27,10 @@ class NodeActionWait(private var ms: Long = 500L): NodeAction()
         fun getWindow(action: NodeActionWait) = UIWindow("Wait action") {
             msImInt.set(action.ms.toInt())
 
-            ImGui.text("Milliseconds amount")
-            ImGui.inputInt("ms", msImInt)
+            ImGui.separatorText("Amount of time")
+            ImGui.textDisabled("Time in milliseconds")
+            ImGui.setNextItemWidth(-Float.MIN_VALUE)
+            ImGui.inputInt("##_ms", msImInt)
 
             action.ms = msImInt.get().toLong()
         }

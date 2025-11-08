@@ -33,7 +33,8 @@ class NodeActionSendMessage(private var message: String = "Message"): NodeAction
         fun getWindow(action: NodeActionSendMessage) = UIWindow("Message action") {
             messageImString.set(action.message)
 
-            ImGui.text("Message to send:")
+            ImGui.separatorText("Message to send")
+            ImGui.setNextItemWidth(-Float.MIN_VALUE)
             ImGui.inputText("##_msgInput", messageImString)
 
             action.message = messageImString.get()

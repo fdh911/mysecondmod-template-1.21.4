@@ -37,7 +37,6 @@ object ModuleEntityScanner : Module("Entity Scanner") {
 
             val nametag = entity.displayName
                 ?.string
-                ?.toString()
                 ?.replace(textModifiersRegex, "")
                 ?: "Unnamed"
 
@@ -92,13 +91,17 @@ object ModuleEntityScanner : Module("Entity Scanner") {
     private var selectedRegex = 0
 
     override fun UIWindow.setWindowContents() {
+        ImGui.separatorText("Radius")
         ImGui.checkbox("Limit the radius?", limitRadius)
         if(limitRadius.get()) {
             ImGui.sliderInt("Lower bound", lowerBound, 1, upperBound[0])
             ImGui.sliderInt("Upper bound", upperBound, lowerBound[0], 256)
         }
 
-        + detectedEntitiesWindow
+        ImGui.separatorText("Detected entities")
+        ImGui.setNextItemWidth(-Float.MIN_VALUE)
+        if(ImGui.button("Show detected entities"))
+            + detectedEntitiesWindow
 
         if(ImGui.collapsingHeader("Regex filtering")) {
             ImGui.text("Entity name should fit at least one regex:")
@@ -125,14 +128,23 @@ object ModuleEntityScanner : Module("Entity Scanner") {
     }
 
     val detectedEntitiesWindow = UIWindow("Detected entities") {
-        ImGui.text("Detected entities")
         ImGui.setNextItemWidth(-Float.MIN_VALUE)
         if(ImGui.beginListBox("##")) {
-            for((dist, entity) in savedEntityList) {
-                val name = entity.displayName?.string?.replace(textModifiersRegex, "") ?: "Unnamed"
+            for(i in savedEntityList.indices) {
+                val (dist, entity) = savedEntityList[i]
+
+                val name = entity
+                    .displayName
+                    ?.string
+                    ?.replace(textModifiersRegex, "")
+                    ?: "Unnamed"
+
+                ImGui.pushID(i)
                 if(ImGui.selectable("(${dist}m) $name"))
                     individualEntity = entity
+                ImGui.popID()
             }
+
             ImGui.endListBox()
         }
     }

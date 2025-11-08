@@ -15,6 +15,7 @@ vec2 corners[4] = vec2[](
 
 void main() {
     vec2 coords = vec2(gl_FragCoord);
+    coords.x += 0.5f * spacing;
     while(coords.x > spacing) coords.x -= spacing;
     while(coords.y > spacing) coords.y -= spacing;
 

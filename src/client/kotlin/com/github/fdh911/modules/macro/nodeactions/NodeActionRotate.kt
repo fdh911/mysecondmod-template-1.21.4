@@ -42,10 +42,12 @@ class NodeActionRotate(var type: Type = Type.EXACT, var yaw: Float = 0.0f, var p
             yawImFloat.set(action.yaw)
             pitchImFloat.set(action.pitch)
 
+            ImGui.separatorText("Absolute / relative rotation")
             ImGui.radioButton(Type.EXACT.string, selectedType, Type.EXACT.ordinal)
             ImGui.sameLine()
             ImGui.radioButton(Type.DELTA.string, selectedType, Type.DELTA.ordinal)
 
+            ImGui.separatorText("Amount")
             ImGui.inputFloat("Yaw", yawImFloat)
             ImGui.inputFloat("Pitch", pitchImFloat)
 

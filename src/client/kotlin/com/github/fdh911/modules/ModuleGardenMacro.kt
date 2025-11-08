@@ -158,9 +158,11 @@ object ModuleGardenMacro: Module("Garden Macro")
         if(ImGui.button("New scene"))
             + sceneCreationWindow
 
+        ImGui.sameLine()
         if(ImGui.button("Save scene"))
             currentScene?.saveToFile()
 
+        ImGui.sameLine()
         if(ImGui.button("Load scene"))
             + sceneLoadingWindow
 
@@ -184,6 +186,7 @@ object ModuleGardenMacro: Module("Garden Macro")
         }
 
         ImGui.separatorText("Nodes")
+        ImGui.setNextItemWidth(-Float.MIN_VALUE)
         if(ImGui.button("Add new node")) {
             val playerPos = MinecraftClient.getInstance().player!!.blockPos
             val newNode = Node(playerPos, "Node ${scene.nodeList.size}")
@@ -269,11 +272,16 @@ object ModuleGardenMacro: Module("Garden Macro")
     private val nodeEditorWindow = UIWindow("Edit node") {
         val node = UIState.nodePtr!!
 
-        ImGui.inputText("##_3", UIState.nodeNameEdit)
+        ImGui.separatorText("Name")
+        ImGui.setNextItemWidth(-Float.MIN_VALUE)
+        ImGui.inputText("##_name", UIState.nodeNameEdit)
+
+        ImGui.separatorText("Position")
         ImGui.inputInt("X", UIState.nodeX)
         ImGui.inputInt("Y", UIState.nodeY)
         ImGui.inputInt("Z", UIState.nodeZ)
 
+        ImGui.separatorText("Actions")
         ImGui.setNextItemWidth(-Float.MIN_VALUE)
         if(ImGui.collapsingHeader("Add a new action ")) {
             var actionToAdd: NodeAction? = null
@@ -321,6 +329,6 @@ object ModuleGardenMacro: Module("Garden Macro")
         node.name = UIState.nodeNameEdit.get()
         node.pos = updatedPos
 
-        ImGui.setNextItemWidth(-Float.MIN_VALUE)
+        ImGui.dummy(300.0f, 0.0f)
     }
 }

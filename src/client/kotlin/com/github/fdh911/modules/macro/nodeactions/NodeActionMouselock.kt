@@ -37,6 +37,7 @@ class NodeActionMouselock(var type: Type = Type.LOCK): NodeAction()
         fun getWindow(action: NodeActionMouselock) = UIWindow("Mouselock action") {
             selectedType.set(action.type.ordinal)
 
+            ImGui.separatorText("Lock / unlock mouse movement")
             ImGui.radioButton(Type.LOCK.string, selectedType, Type.LOCK.ordinal)
             ImGui.sameLine()
             ImGui.radioButton(Type.UNLOCK.string, selectedType, Type.UNLOCK.ordinal)
