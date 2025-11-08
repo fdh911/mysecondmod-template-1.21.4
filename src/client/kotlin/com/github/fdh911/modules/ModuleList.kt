@@ -11,6 +11,7 @@ object ModuleList {
         ModuleEntityScanner,
         ModuleNoPause,
         SkyblockState,
+        ModuleMithrilMacro,
     )
 
     private val toDisplay = mutableSetOf<Module>()
