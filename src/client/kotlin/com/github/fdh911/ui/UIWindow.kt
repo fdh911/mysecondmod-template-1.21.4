@@ -3,7 +3,6 @@ package com.github.fdh911.ui
 import imgui.ImGui
 import imgui.ImVec2
 import imgui.flag.ImGuiCond
-import imgui.flag.ImGuiConfigFlags
 import imgui.flag.ImGuiWindowFlags
 import imgui.type.ImBoolean
 

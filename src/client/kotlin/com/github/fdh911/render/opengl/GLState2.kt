@@ -1,7 +1,7 @@
 package com.github.fdh911.render.opengl
 
-import org.lwjgl.system.MemoryStack
 import org.lwjgl.opengl.GL45.*
+import org.lwjgl.system.MemoryStack
 
 class GLState2 {
     data class BlendState(

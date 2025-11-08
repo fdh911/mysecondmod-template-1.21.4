@@ -1,11 +1,6 @@
 package com.github.fdh911.modules.macro
 
-import com.github.fdh911.modules.macro.nodeactions.NodeAction
-import com.github.fdh911.modules.macro.nodeactions.NodeActionKey
-import com.github.fdh911.modules.macro.nodeactions.NodeActionMouselock
-import com.github.fdh911.modules.macro.nodeactions.NodeActionRotate
-import com.github.fdh911.modules.macro.nodeactions.NodeActionSendMessage
-import com.github.fdh911.modules.macro.nodeactions.NodeActionWait
+import com.github.fdh911.modules.macro.nodeactions.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule

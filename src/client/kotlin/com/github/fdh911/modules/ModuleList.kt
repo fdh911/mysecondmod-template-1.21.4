@@ -1,6 +1,5 @@
 package com.github.fdh911.modules
 
-import com.github.fdh911.ui.UI
 import com.github.fdh911.state.SkyblockState
 import com.github.fdh911.ui.UIWindow
 import imgui.ImGui

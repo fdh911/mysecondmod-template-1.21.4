@@ -1,7 +1,6 @@
 package com.github.fdh911.modules
 
 import com.github.fdh911.render.CuboidRenderer
-import com.github.fdh911.ui.UI
 import com.github.fdh911.ui.UIWindow
 import imgui.ImGui
 import imgui.type.ImBoolean
@@ -9,11 +8,8 @@ import imgui.type.ImString
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.Entity
-import net.minecraft.entity.EquipmentSlot
-import net.minecraft.entity.LivingEntity
 import org.joml.Vector3f
 import org.joml.Vector4f
-import kotlin.math.pow
 
 object ModuleEntityScanner : Module("Entity Scanner") {
     private val savedEntityList = mutableListOf<Pair<Int, Entity>>()

@@ -1,12 +1,12 @@
 package com.github.fdh911
 
 import com.github.fdh911.io.Keybinds
-import com.github.fdh911.modules.ModuleList
-import com.github.fdh911.ui.UI
 import com.github.fdh911.modules.ModuleGardenMacro
+import com.github.fdh911.modules.ModuleList
 import com.github.fdh911.modules.macro.KeySimulator
 import com.github.fdh911.modules.macro.MouseLock
 import com.github.fdh911.render.opengl.GLState2
+import com.github.fdh911.ui.UI
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext

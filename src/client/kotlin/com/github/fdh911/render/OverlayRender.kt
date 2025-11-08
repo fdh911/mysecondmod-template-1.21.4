@@ -1,11 +1,6 @@
 package com.github.fdh911.render
 
-import com.github.fdh911.render.opengl.GLElementBuffer
-import com.github.fdh911.render.opengl.GLProgram
-import com.github.fdh911.render.opengl.GLState2
-import com.github.fdh911.render.opengl.GLVertexArray
-import com.github.fdh911.render.opengl.GLVertexBuffer
-import org.joml.Vector4f
+import com.github.fdh911.render.opengl.*
 import org.lwjgl.opengl.GL45.*
 
 object OverlayRender {
