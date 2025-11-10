@@ -32,7 +32,7 @@ object CursorManager
             start = start,
             end = end,
             precision = 1.0f,
-            maxError = 15.0f,
+            maxError = 50.0f,
         ) {
             point: Vector2f -> glfwSetCursorPos(windowPtr, point.x.toDouble(), point.y.toDouble())
         }

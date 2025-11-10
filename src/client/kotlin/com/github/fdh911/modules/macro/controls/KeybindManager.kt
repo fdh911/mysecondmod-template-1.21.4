@@ -43,6 +43,7 @@ object KeybindManager {
 
         for(key in toPress) {
             key.isPressed = true
+            KeyBinding.onKeyPressed(key.defaultKey)
             finishedPress.add(key)
         }
         toPress.clear()
