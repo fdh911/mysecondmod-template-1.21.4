@@ -1,4 +1,4 @@
-package com.github.fdh911.modules.macro.serialization
+package com.github.fdh911.utils
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName

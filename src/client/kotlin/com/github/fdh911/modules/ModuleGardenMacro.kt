@@ -281,18 +281,9 @@ object ModuleGardenMacro: Module("Garden Macro")
             var actionToAdd: NodeAction? = null
             ImGui.setNextItemWidth(-Float.MIN_VALUE)
             if(ImGui.beginListBox("##_addActionList")) {
-                if(ImGui.selectable("Key action"))
-                    actionToAdd = NodeActionKey()
-                if(ImGui.selectable("Send chat message"))
-                    actionToAdd = NodeActionSendMessage()
-                if(ImGui.selectable("Wait"))
-                    actionToAdd = NodeActionWait()
-                if(ImGui.selectable("Rotation"))
-                    actionToAdd = NodeActionRotate()
-                if(ImGui.selectable("Lock / unlock mouse"))
-                    actionToAdd = NodeActionMouselock()
-                if(ImGui.selectable("Move cursor"))
-                    actionToAdd = NodeActionMoveCursor()
+                for((name, provider) in ActionsRegistry.entries)
+                    if(ImGui.selectable(name))
+                        actionToAdd = provider()
                 ImGui.endListBox()
             }
             if(actionToAdd != null) {

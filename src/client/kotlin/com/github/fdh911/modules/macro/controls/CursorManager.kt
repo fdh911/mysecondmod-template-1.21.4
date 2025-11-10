@@ -21,15 +21,11 @@ object CursorManager
         val client = MinecraftClient.getInstance()
         val windowPtr = client.window.handle
 
-        val job = CompletableDeferred<Vector2f>()
-        client.execute {
-            val xPtr = doubleArrayOf(0.0)
-            val yPtr = doubleArrayOf(0.0)
-            glfwGetCursorPos(windowPtr, xPtr, yPtr)
-            job.complete(Vector2f(xPtr[0].toFloat(), yPtr[0].toFloat()))
-        }
+        val xPtr = doubleArrayOf(0.0)
+        val yPtr = doubleArrayOf(0.0)
+        glfwGetCursorPos(windowPtr, xPtr, yPtr)
 
-        val start = job.await()
+        val start = Vector2f(xPtr[0].toFloat(), yPtr[0].toFloat())
         val end = Vector2f(xPos.toFloat(), yPos.toFloat())
 
         generate(
@@ -38,7 +34,7 @@ object CursorManager
             precision = 1.0f,
             maxError = 15.0f,
         ) {
-            point: Vector2f -> client.execute { glfwSetCursorPos(windowPtr, point.x.toDouble(), point.y.toDouble()) }
+            point: Vector2f -> glfwSetCursorPos(windowPtr, point.x.toDouble(), point.y.toDouble())
         }
     }
 
@@ -49,8 +45,17 @@ object CursorManager
 
     suspend fun rotateHeadAbsolute(yaw: Float, pitch: Float) {
         val player = MinecraftClient.getInstance().player!!
+
+        val yawOffset = player.yaw.let {
+            var yaw = it
+            var offset = 0.0f
+            while(yaw < 180.0f) { yaw += 360.0f; offset += 360.0f }
+            while(yaw >= 180.0f) { yaw -= 360.0f; offset -= 360.0f }
+            offset
+        }
+
         generate(
-            start = Vector2f(player.yaw, player.pitch),
+            start = Vector2f(player.yaw + yawOffset, player.pitch),
             end = Vector2f(yaw, pitch),
             precision = 1.0f,
             maxError = 30.0f

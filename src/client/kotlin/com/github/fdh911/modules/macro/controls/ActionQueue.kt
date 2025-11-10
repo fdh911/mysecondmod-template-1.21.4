@@ -2,22 +2,23 @@ package com.github.fdh911.modules.macro.controls
 
 import com.github.fdh911.modules.macro.nodeactions.NodeAction
 import com.github.fdh911.utils.Chat
+import com.github.fdh911.utils.clientScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import net.minecraft.client.MinecraftClient
 import java.util.LinkedList
 import java.util.Queue
 
-@OptIn(DelicateCoroutinesApi::class)
 object ActionQueue
 {
-    var debugMode = false
+    var debugMode = true
 
     private val q: Queue<NodeAction> = LinkedList()
 
     init {
-        GlobalScope.launch {
+        clientScope.launch {
             while(true) {
                 if(q.isEmpty()) {
                     delay(1L)

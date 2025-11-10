@@ -11,20 +11,20 @@ import java.io.File
 class NodeScene(var name: String)
 {
     companion object {
-        val serializerModule = SerializersModule {
-            polymorphic(NodeAction::class) {
-                subclass(NodeActionKey::class, NodeActionKey.serializer())
-                subclass(NodeActionMouselock::class, NodeActionMouselock.serializer())
-                subclass(NodeActionRotate::class, NodeActionRotate.serializer())
-                subclass(NodeActionSendMessage::class, NodeActionSendMessage.serializer())
-                subclass(NodeActionWait::class, NodeActionWait.serializer())
-                subclass(NodeActionMoveCursor::class, NodeActionMoveCursor.serializer())
-            }
-        }
+//        val serializerModule = SerializersModule {
+//            polymorphic(NodeAction::class) {
+//                subclass(NodeActionKey::class, NodeActionKey.serializer())
+//                subclass(NodeActionMouselock::class, NodeActionMouselock.serializer())
+//                subclass(NodeActionRotate::class, NodeActionRotate.serializer())
+//                subclass(NodeActionSendMessage::class, NodeActionSendMessage.serializer())
+//                subclass(NodeActionWait::class, NodeActionWait.serializer())
+//                subclass(NodeActionMoveCursor::class, NodeActionMoveCursor.serializer())
+//            }
+//        }
 
         val json = Json {
             classDiscriminator = "ACTIONTYPE"
-            serializersModule = serializerModule
+//            serializersModule = serializerModule
             prettyPrint = true
             encodeDefaults = true
         }
