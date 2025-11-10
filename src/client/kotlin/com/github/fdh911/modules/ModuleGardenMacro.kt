@@ -10,20 +10,19 @@ import com.github.fdh911.render.CuboidRenderer
 import com.github.fdh911.render.Unicodes
 import com.github.fdh911.state.SkyblockState
 import com.github.fdh911.ui.UIWindow
+import com.github.fdh911.utils.mc
 import imgui.ImGui
 import imgui.flag.ImGuiStyleVar
 import imgui.type.ImBoolean
 import imgui.type.ImInt
 import imgui.type.ImString
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.math.BlockPos
 import org.joml.Vector3d
 import org.joml.Vector3f
+import org.joml.Vector3i
 import org.joml.Vector4f
 import java.io.File
 import java.util.*
@@ -36,11 +35,8 @@ object ModuleGardenMacro: Module("Garden Macro")
     var currentScene: NodeScene? = null
     var currentNode: Node? = null
 
-    val disableOutsideGarden: Boolean
-        get() = UIState.disableOutsideGarden.get()
-
-    val disableOnServerClose: Boolean
-        get() = UIState.disableOnServerClose.get()
+    var disableOutsideGarden = false
+    var disableOnServerClose = false
 
     override fun onDisable() {
         CursorManager.isMouseLocked = false
@@ -126,223 +122,248 @@ object ModuleGardenMacro: Module("Garden Macro")
         }
     }
 
-    private object UIState {
-        val sceneCreationNameEdit = ImString()
-        var nodePtr: Node? = null
-        var actionPtr: NodeAction? = null
-        val nodeNameEdit = ImString()
-        val nodeX = ImInt()
-        val nodeY = ImInt()
-        val nodeZ = ImInt()
-        val disableOutsideGarden = ImBoolean(true)
-        val disableOnServerClose = ImBoolean(true)
-    }
+    override fun UIWindow.setWindowContents() = with(MainWindowContents) { windowContents() }
 
-    override fun UIWindow.setWindowContents() {
-        ImGui.checkbox("Disable when outside garden", UIState.disableOutsideGarden)
-        ImGui.checkbox("Disable on server close", UIState.disableOnServerClose)
-        ImGui.separatorText("Scene")
-        ImGui.text("Current: ${currentScene?.name ?: "None"}")
-        ImGui.setNextItemWidth(-Float.MIN_VALUE)
+    private object NodeEditorWindow {
+        private val nameImString = ImString()
+        private val xImInt = ImInt()
+        private val yImInt = ImInt()
+        private val zImInt = ImInt()
+        private var actionWindow: UIWindow? = null
 
-        if(ImGui.button("New scene"))
-            + sceneCreationWindow
-
-        ImGui.sameLine()
-        if(ImGui.button("Save scene"))
-            currentScene?.saveToFile()
-
-        ImGui.sameLine()
-        if(ImGui.button("Load scene"))
-            + sceneLoadingWindow
-
-        if(currentScene == null)
-            return
-
-        val scene = currentScene!!
-
-        val selectNodeInUI: UIWindow.(Node?) -> Unit = {
-            node: Node? ->
-
-            UIState.nodePtr = node
-            if(node != null) {
-                UIState.nodeNameEdit.set(node.name)
-                UIState.nodeX.set(node.pos.x)
-                UIState.nodeY.set(node.pos.y)
-                UIState.nodeZ.set(node.pos.z)
+        fun getWindow(node: Node?) = UIWindow("Edit node") {
+            if(node == null) {
+                closeThisWindow()
+                return@UIWindow
             }
 
-            + nodeEditorWindow
-        }
+            nameImString.set(node.name)
+            xImInt.set(node.pos.x)
+            yImInt.set(node.pos.y)
+            zImInt.set(node.pos.z)
 
-        ImGui.separatorText("Nodes")
-        ImGui.setNextItemWidth(-Float.MIN_VALUE)
-        if(ImGui.button("Add new node")) {
-            val playerPos = MinecraftClient.getInstance().player!!.blockPos
-            val newNode = Node(playerPos, "Node ${scene.nodeList.size}")
-            scene.nodeList.add(newNode)
-            selectNodeInUI(newNode)
-        }
-
-        ImGui.setNextItemWidth(-Float.MIN_VALUE)
-        var toRemove = -1
-        if(ImGui.collapsingHeader("Existing nodes")) {
+            ImGui.separatorText("Name")
             ImGui.setNextItemWidth(-Float.MIN_VALUE)
-            if(ImGui.beginListBox("##_2")) {
-                for(i in scene.nodeList.indices) {
-                    val node = scene.nodeList[i]
-                    ImGui.pushID(i)
-                    ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0.0f, 0.0f)
-                    if(ImGui.smallButton(Unicodes.REMOVE.s)) {
-                        toRemove = i
-                        selectNodeInUI(null)
+            ImGui.inputText("##_name", nameImString)
+
+            ImGui.separatorText("Position")
+            ImGui.inputInt("X", xImInt)
+            ImGui.inputInt("Y", yImInt)
+            ImGui.inputInt("Z", zImInt)
+
+            ImGui.separatorText("Actions")
+            ImGui.setNextItemWidth(-Float.MIN_VALUE)
+            if(ImGui.collapsingHeader("Add a new action ")) {
+                ImGui.setNextItemWidth(-Float.MIN_VALUE)
+
+                var actionToAdd: NodeAction? = null
+
+                if(ImGui.beginListBox("##_addActionList")) {
+
+                    ActionsRegistry.entries.forEach { (name, provider) ->
+                        if(ImGui.selectable(name))
+                            actionToAdd = provider()
                     }
-                    ImGui.sameLine()
-                    if(ImGui.smallButton(Unicodes.DUPLICATE.s)) {
-                        val clonedNode = node.clone()
-                        val regex = "(?<name>.*) (?<number>[0-9]*)".toRegex()
-                        val match = regex.matchEntire(clonedNode.name)
-                        clonedNode.name = if(match != null) {
-                            val name = match.groups["name"]!!.value
-                            val number = match.groups["number"]!!.value.toInt() + 1
-                            "$name $number"
-                        } else {
-                            "${clonedNode.name} 1"
-                        }
-                        scene.nodeList.add(i + 1, clonedNode)
-                        selectNodeInUI(clonedNode)
-                    }
-                    ImGui.popStyleVar()
-                    ImGui.sameLine()
-                    if(ImGui.button(node.name))
-                        selectNodeInUI(node)
-                    ImGui.popID()
+
+                    ImGui.endListBox()
                 }
-                ImGui.endListBox()
+
+                if(actionToAdd != null) {
+                    node.actions.add(actionToAdd)
+                    actionWindow?.closeThisWindow()
+                    actionWindow = actionToAdd.getEditorWindow()
+                    + actionWindow!!
+                }
+            }
+
+            ImGui.setNextItemWidth(-Float.MIN_VALUE)
+            if(ImGui.collapsingHeader("Current actions")) {
+                val actions = node.actions
+
+                ImGui.setNextItemWidth(-Float.MIN_VALUE)
+                if(ImGui.beginListBox("##_currentActions")) {
+                    var toRemove: Int? = null
+
+                    actions.zip(actions.indices).forEach { (action, i) ->
+                        ImGui.pushID(i)
+
+                        ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0.0f, 0.0f)
+                        if(ImGui.smallButton(Unicodes.REMOVE.s)) {
+                            toRemove = i
+                        }
+                        ImGui.sameLine()
+                        if(ImGui.smallButton(Unicodes.ANGLE_UP.s) && i > 0) {
+                            val aux = actions[i - 1]
+                            actions[i - 1] = actions[i]
+                            actions[i] = aux
+                        }
+                        ImGui.sameLine()
+                        if(ImGui.smallButton(Unicodes.ANGLE_DOWN.s) && i < actions.size - 1) {
+                            val aux = actions[i + 1]
+                            actions[i + 1] = actions[i]
+                            actions[i] = aux
+                        }
+                        ImGui.popStyleVar()
+
+                        ImGui.sameLine()
+                        if(ImGui.button(action.toString())) {
+                            actionWindow?.closeThisWindow()
+                            actionWindow = action.getEditorWindow()
+                            + actionWindow!!
+                        }
+
+                        ImGui.popID()
+                    }
+
+                    if(toRemove != null)
+                        actions.removeAt(toRemove)
+
+                    ImGui.endListBox()
+                }
+            }
+
+            ImGui.dummy(300.0f, 0.0f)
+
+            node.name = nameImString.get()
+            node.pos.x = xImInt.get()
+            node.pos.y = yImInt.get()
+            node.pos.z = zImInt.get()
+        }
+    }
+
+    private object SceneLoadingWindow {
+        fun getWindow() = UIWindow("Load scene") {
+            val directory = File(".").listFiles()
+
+            for(i in directory.indices) {
+                val file = directory[i]
+
+                val name = "(?<scenename>[^.]+)[.]msmscene[.]json".toRegex()
+                    .matchEntire(file.name)
+                    ?.groups
+                    ?.get("scenename")
+                    ?.value
+                    ?:continue
+
+                ImGui.pushID(i)
+                if(ImGui.selectable(name)) {
+                    currentScene = NodeScene.loadFromFile(file)
+                    closeThisWindow()
+                }
+                ImGui.popID()
             }
         }
-        if(toRemove != -1)
-            scene.nodeList.removeAt(toRemove)
     }
 
-    private val sceneCreationWindow = UIWindow("New scene") {
-        ImGui.inputText("##_1", UIState.sceneCreationNameEdit)
-        ImGui.setNextItemWidth(-Float.MIN_VALUE)
+    private object SceneCreationWindow {
+        private val nameImString = ImString()
 
-        if(ImGui.button("Create scene")) {
-            val sceneName = if(UIState.sceneCreationNameEdit.get() == "")
-                "Unnamed"
-            else
-                UIState.sceneCreationNameEdit.get()
+        fun getWindow() = UIWindow("Create scene") {
+            ImGui.separatorText("Name")
+            ImGui.setNextItemWidth(-Float.MIN_VALUE)
+            ImGui.inputText("##_name", nameImString)
 
-            currentScene = NodeScene(sceneName)
-            closeThisWindow()
-        }
-    }
+            ImGui.setNextItemWidth(-Float.MIN_VALUE)
+            if(ImGui.button("Create")) {
+                val sceneName = nameImString.let { if(it.isEmpty) "Unnamed" else it.get() }
 
-    private val sceneLoadingWindow = UIWindow("Load scene") {
-        val directory = File(".").listFiles()
+                currentScene = NodeScene(sceneName)
 
-        for(i in directory.indices) {
-            val file = directory[i]
-
-            val name = "(?<scenename>[^.]+)[.]msmscene[.]json".toRegex()
-                .matchEntire(file.name)
-                ?.groups
-                ?.get("scenename")
-                ?.value
-                ?:continue
-
-            ImGui.pushID(i)
-            if(ImGui.selectable(name)) {
-                currentScene = NodeScene.loadFromFile(file)
                 closeThisWindow()
             }
-            ImGui.popID()
         }
     }
 
-    private val nodeEditorWindow = UIWindow("Edit node") {
-        val node = UIState.nodePtr
+    private object MainWindowContents {
+        private val disableOutsideGardenImBoolean = ImBoolean(false)
+        private val disableOnServerCloseImBoolean = ImBoolean(false)
 
-        if(node == null) {
-            closeThisWindow()
-            return@UIWindow
-        }
+        fun UIWindow.windowContents() {
+            ImGui.separatorText("Failsafes")
+            ImGui.checkbox("Disable outside Garden", disableOutsideGardenImBoolean)
+            ImGui.checkbox("Disable on server close", disableOnServerCloseImBoolean)
 
-        ImGui.separatorText("Name")
-        ImGui.setNextItemWidth(-Float.MIN_VALUE)
-        ImGui.inputText("##_name", UIState.nodeNameEdit)
+            disableOutsideGarden = disableOutsideGardenImBoolean.get()
+            disableOnServerClose = disableOnServerCloseImBoolean.get()
 
-        ImGui.separatorText("Position")
-        ImGui.inputInt("X", UIState.nodeX)
-        ImGui.inputInt("Y", UIState.nodeY)
-        ImGui.inputInt("Z", UIState.nodeZ)
+            ImGui.separatorText("Scene")
+            ImGui.text("Current: ${currentScene?.name ?: "None"}")
 
-        ImGui.separatorText("Actions")
-        ImGui.setNextItemWidth(-Float.MIN_VALUE)
-        if(ImGui.collapsingHeader("Add a new action ")) {
-            var actionToAdd: NodeAction? = null
             ImGui.setNextItemWidth(-Float.MIN_VALUE)
-            if(ImGui.beginListBox("##_addActionList")) {
-                for((name, provider) in ActionsRegistry.entries)
-                    if(ImGui.selectable(name))
-                        actionToAdd = provider()
-                ImGui.endListBox()
-            }
-            if(actionToAdd != null) {
-                node.actions.add(actionToAdd)
-                UIState.actionPtr = actionToAdd
-            }
-        }
+            if(ImGui.button("New scene"))
+                + SceneCreationWindow.getWindow()
 
-        ImGui.setNextItemWidth(-Float.MIN_VALUE)
-        if(ImGui.collapsingHeader("Current actions")) {
+            ImGui.sameLine()
+            if(ImGui.button("Save scene"))
+                currentScene?.saveToFile()
+
+            ImGui.sameLine()
+            if(ImGui.button("Load scene"))
+                + SceneLoadingWindow.getWindow()
+
+            if(currentScene == null)
+                return
+
+            val scene = currentScene!!
+            val nodes = scene.nodeList
+
+            ImGui.separatorText("Nodes")
             ImGui.setNextItemWidth(-Float.MIN_VALUE)
-            var toRemove = -1
-            if(ImGui.beginListBox("##_4")) {
-                for(i in node.actions.indices) {
-                    val action = node.actions[i]
-                    ImGui.pushID(i)
-                    ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0.0f, 0.0f)
-                    if(ImGui.smallButton(Unicodes.REMOVE.s)) {
-                        toRemove = i
+            if(ImGui.button("Add new node")) {
+                val pos = mc.player!!.blockPos.let { Vector3i(it.x, it.y, it.z) }
+                val name = "Node ${nodes.size}"
+
+                val node = Node(pos, name)
+
+                nodes.add(node)
+
+                + NodeEditorWindow.getWindow(node)
+            }
+
+            ImGui.setNextItemWidth(-Float.MIN_VALUE)
+            if(ImGui.collapsingHeader("Existing nodes")) {
+
+                ImGui.setNextItemWidth(-Float.MIN_VALUE)
+                if(ImGui.beginListBox("##_2")) {
+                    var toRemove: Int? = null
+
+                    nodes.zip(nodes.indices).forEach { (node, i) ->
+                        ImGui.pushID(i)
+
+                        ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0.0f, 0.0f)
+                        if(ImGui.smallButton(Unicodes.REMOVE.s))
+                            toRemove = i
+
+                        ImGui.sameLine()
+                        if(ImGui.smallButton(Unicodes.DUPLICATE.s)) {
+                            val clonedNode = node.clone()
+                            clonedNode.name = "(?<name>.*) (?<number>[0-9]*)".toRegex()
+                                .matchEntire(clonedNode.name)
+                                ?.let {
+                                    val name = it.groups["name"]!!.value
+                                    val number = it.groups["number"]!!.value.toInt() + 1
+                                    "$name $number"
+                                }
+                                ?: "${clonedNode.name} 1"
+
+                            nodes.add(i + 1, clonedNode)
+                            + NodeEditorWindow.getWindow(clonedNode)
+                        }
+                        ImGui.popStyleVar()
+
+                        ImGui.sameLine()
+                        if(ImGui.button(node.name))
+                            + NodeEditorWindow.getWindow(node)
+
+                        ImGui.popID()
                     }
-                    ImGui.sameLine()
-                    if(ImGui.smallButton(Unicodes.ANGLE_UP.s) && i > 0) {
-                        val aux = node.actions[i - 1]
-                        node.actions[i - 1] = node.actions[i]
-                        node.actions[i] = aux
-                    }
-                    ImGui.sameLine()
-                    if(ImGui.smallButton(Unicodes.ANGLE_DOWN.s) && i < node.actions.size - 1) {
-                        val aux = node.actions[i + 1]
-                        node.actions[i + 1] = node.actions[i]
-                        node.actions[i] = aux
-                    }
-                    ImGui.popStyleVar()
-                    ImGui.sameLine()
-                    if(ImGui.button(action.toString())) {
-                        UIState.actionPtr = action
-                        + action.getEditorWindow()
-                    }
-                    ImGui.popID()
+
+                    if(toRemove != null)
+                        nodes.removeAt(toRemove)
+
+                    ImGui.endListBox()
                 }
-                ImGui.endListBox()
             }
-            if(toRemove != -1)
-                node.actions.removeAt(toRemove)
         }
-
-        val updatedPos = BlockPos(
-            UIState.nodeX.get(),
-            UIState.nodeY.get(),
-            UIState.nodeZ.get(),
-        )
-
-        node.name = UIState.nodeNameEdit.get()
-        node.pos = updatedPos
-
-        ImGui.dummy(300.0f, 0.0f)
     }
 }

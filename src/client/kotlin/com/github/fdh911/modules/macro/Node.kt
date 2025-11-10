@@ -1,14 +1,14 @@
 package com.github.fdh911.modules.macro
 
 import com.github.fdh911.modules.macro.nodeactions.NodeAction
-import com.github.fdh911.utils.BlockPosSerializer
+import com.github.fdh911.utils.Vector3iSerializer
 import kotlinx.serialization.Serializable
-import net.minecraft.util.math.BlockPos
+import org.joml.Vector3i
 
 @Serializable
 data class Node(
-    @Serializable(with = BlockPosSerializer::class)
-    var pos: BlockPos,
+    @Serializable(with = Vector3iSerializer::class)
+    var pos: Vector3i,
     var name: String,
     val actions: MutableList<NodeAction> = mutableListOf()
 ): Cloneable
