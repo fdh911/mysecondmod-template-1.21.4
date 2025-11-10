@@ -1,6 +1,6 @@
 package com.github.fdh911.modules.macro.nodeactions
 
-import com.github.fdh911.modules.macro.WindMouse
+import com.github.fdh911.modules.macro.controls.CursorManager
 import com.github.fdh911.ui.UIWindow
 import imgui.ImGui
 import imgui.type.ImFloat
@@ -21,8 +21,8 @@ class NodeActionRotate(var type: Type = Type.EXACT, var yaw: Float = 0.0f, var p
 
     override suspend fun execute() {
         when(type) {
-            Type.EXACT -> WindMouse.rotateHeadExact(yaw, pitch)
-            Type.DELTA -> WindMouse.rotateHeadDelta(yaw, pitch)
+            Type.EXACT -> CursorManager.rotateHeadAbsolute(yaw, pitch)
+            Type.DELTA -> CursorManager.rotateHeadRelative(yaw, pitch)
         }
     }
 

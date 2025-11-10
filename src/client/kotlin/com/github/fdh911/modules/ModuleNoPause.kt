@@ -5,11 +5,11 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.MinecraftClient
 
 object ModuleNoPause: Module("No Pause") {
-    override fun update() {
+    override fun onUpdate() {
         MinecraftClient.getInstance().options.pauseOnLostFocus = !toggled
     }
 
-    override fun renderUpdate(ctx: WorldRenderContext) { }
+    override fun onRenderUpdate(ctx: WorldRenderContext) { }
 
     override fun UIWindow.setWindowContents() { }
 }

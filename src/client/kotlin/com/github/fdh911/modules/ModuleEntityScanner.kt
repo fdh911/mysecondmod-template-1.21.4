@@ -14,7 +14,7 @@ import org.joml.Vector4f
 object ModuleEntityScanner : Module("Entity Scanner") {
     private val savedEntityList = mutableListOf<Pair<Int, Entity>>()
 
-    override fun update() {
+    override fun onUpdate() {
         val player = MinecraftClient.getInstance().player
             ?: return
 
@@ -57,7 +57,7 @@ object ModuleEntityScanner : Module("Entity Scanner") {
     private val closeColor = Vector4f(1.0f, 0.0f, 0.0f, 0.4f)
     private val farColor = Vector4f(0.0f, 0.0f, 1.0f, 0.4f)
 
-    override fun renderUpdate(ctx: WorldRenderContext) {
+    override fun onRenderUpdate(ctx: WorldRenderContext) {
         for((dist, entity) in savedEntityList) {
             val aabb = entity.boundingBox
             val delta = entity.interpolatedPos() - entity.pos.toVector3f()

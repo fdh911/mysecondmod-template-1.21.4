@@ -1,6 +1,6 @@
 package com.github.fdh911.modules.macro.nodeactions
 
-import com.github.fdh911.modules.macro.MouseLock
+import com.github.fdh911.modules.macro.controls.CursorManager
 import com.github.fdh911.ui.UIWindow
 import imgui.ImGui
 import imgui.type.ImInt
@@ -19,7 +19,7 @@ class NodeActionMouselock(var type: Type = Type.LOCK): NodeAction()
     }
 
     override suspend fun execute() {
-        MouseLock.isLocked = when(type) {
+        CursorManager.isMouseLocked = when(type) {
             Type.LOCK   -> true
             Type.UNLOCK -> false
         }

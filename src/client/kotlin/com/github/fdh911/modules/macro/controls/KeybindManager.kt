@@ -1,10 +1,9 @@
-package com.github.fdh911.modules.macro
+package com.github.fdh911.modules.macro.controls
 
-import com.github.fdh911.modules.ModuleGardenMacro
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.option.KeyBinding
 
-object KeySimulator {
+object KeybindManager {
     private val toHold = mutableSetOf<KeyBinding>()
     private val toPress = mutableSetOf<KeyBinding>()
     private val toRelease = mutableSetOf<KeyBinding>()
@@ -21,20 +20,20 @@ object KeySimulator {
     fun press(translationKey: String) = toPress.add(translationKeyToKeybinding[translationKey]!!)
     fun release(translationKey: String) = toRelease.add(translationKeyToKeybinding[translationKey]!!)
 
-    fun update() {
-        if(!ModuleGardenMacro.toggled) {
-            for(key in toHold)
-                key.isPressed = false
-            for(key in toPress)
-                key.isPressed = false
-            for(key in finishedPress)
-                key.isPressed = false
-            toHold.clear()
-            toPress.clear()
-            toRelease.clear()
-            finishedPress.clear()
-        }
+    fun clear() {
+        for(key in toHold)
+            key.isPressed = false
+        for(key in toPress)
+            key.isPressed = false
+        for(key in finishedPress)
+            key.isPressed = false
+        toHold.clear()
+        toPress.clear()
+        toRelease.clear()
+        finishedPress.clear()
+    }
 
+    fun update() {
         for(key in finishedPress)
             key.isPressed = false
         finishedPress.clear()

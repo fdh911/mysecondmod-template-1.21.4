@@ -10,7 +10,8 @@ import kotlin.random.Random
     https://ben.land/post/2021/04/25/windmouse-human-mouse-movement/
 */
 
-object WindMouse {
+object WindMouse
+{
     private const val G_0 = 9.0f
     private const val W_0 = 3.0f
     private const val D_0 = 12.0f

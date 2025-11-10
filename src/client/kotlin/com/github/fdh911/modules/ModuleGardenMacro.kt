@@ -2,6 +2,9 @@ package com.github.fdh911.modules
 
 import com.github.fdh911.modules.macro.Node
 import com.github.fdh911.modules.macro.NodeScene
+import com.github.fdh911.modules.macro.controls.ActionQueue
+import com.github.fdh911.modules.macro.controls.CursorManager
+import com.github.fdh911.modules.macro.controls.KeybindManager
 import com.github.fdh911.modules.macro.nodeactions.*
 import com.github.fdh911.render.CuboidRenderer
 import com.github.fdh911.render.Unicodes
@@ -31,21 +34,6 @@ object ModuleGardenMacro: Module("Garden Macro")
 {
     var currentScene: NodeScene? = null
     var currentNode: Node? = null
-    private val actionQueue: Queue<NodeAction> = LinkedList()
-
-    init {
-        GlobalScope.launch {
-            while(true) {
-                if(!toggled || actionQueue.isEmpty()) {
-                    actionQueue.clear()
-                    delay(1L)
-                    continue
-                }
-                val action = actionQueue.remove()
-                action.execute()
-            }
-        }
-    }
 
     val disableOutsideGarden: Boolean
         get() = UIState.disableOutsideGarden.get()
@@ -53,7 +41,15 @@ object ModuleGardenMacro: Module("Garden Macro")
     val disableOnServerClose: Boolean
         get() = UIState.disableOnServerClose.get()
 
-    override fun update() {
+    override fun onDisable() {
+        CursorManager.isMouseLocked = false
+        KeybindManager.clear()
+        ActionQueue.clear()
+    }
+
+    override fun onUpdate() {
+        KeybindManager.update()
+
         if(disableOutsideGarden && !SkyblockState.Garden.isInGarden) {
             toggled = false
             return
@@ -93,7 +89,7 @@ object ModuleGardenMacro: Module("Garden Macro")
             newCurrentNode = node
 
             if(currentNode != newCurrentNode)
-                actionQueue.addAll(newCurrentNode.actions)
+                ActionQueue += newCurrentNode.actions
 
             break
         }
@@ -107,7 +103,7 @@ object ModuleGardenMacro: Module("Garden Macro")
         val scale = Vector3f(1.0f, 1.0f, 1.0f)
     }
 
-    override fun renderUpdate(ctx: WorldRenderContext) {
+    override fun onRenderUpdate(ctx: WorldRenderContext) {
         if(currentScene == null) return
         val scene = currentScene!!
         for(node in scene.nodeList) {
@@ -263,7 +259,12 @@ object ModuleGardenMacro: Module("Garden Macro")
     }
 
     private val nodeEditorWindow = UIWindow("Edit node") {
-        val node = UIState.nodePtr!!
+        val node = UIState.nodePtr
+
+        if(node == null) {
+            closeThisWindow()
+            return@UIWindow
+        }
 
         ImGui.separatorText("Name")
         ImGui.setNextItemWidth(-Float.MIN_VALUE)
@@ -290,6 +291,8 @@ object ModuleGardenMacro: Module("Garden Macro")
                     actionToAdd = NodeActionRotate()
                 if(ImGui.selectable("Lock / unlock mouse"))
                     actionToAdd = NodeActionMouselock()
+                if(ImGui.selectable("Move cursor"))
+                    actionToAdd = NodeActionMoveCursor()
                 ImGui.endListBox()
             }
             if(actionToAdd != null) {

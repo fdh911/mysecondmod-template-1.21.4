@@ -18,6 +18,7 @@ class NodeScene(var name: String)
                 subclass(NodeActionRotate::class, NodeActionRotate.serializer())
                 subclass(NodeActionSendMessage::class, NodeActionSendMessage.serializer())
                 subclass(NodeActionWait::class, NodeActionWait.serializer())
+                subclass(NodeActionMoveCursor::class, NodeActionMoveCursor.serializer())
             }
         }
 

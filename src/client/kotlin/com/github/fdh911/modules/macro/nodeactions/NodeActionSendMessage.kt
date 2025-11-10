@@ -1,6 +1,7 @@
 package com.github.fdh911.modules.macro.nodeactions
 
 import com.github.fdh911.ui.UIWindow
+import com.github.fdh911.utils.Chat
 import imgui.ImGui
 import imgui.type.ImString
 import kotlinx.serialization.SerialName
@@ -13,7 +14,7 @@ import net.minecraft.text.Text
 class NodeActionSendMessage(private var message: String = "Message"): NodeAction()
 {
     override suspend fun execute() {
-        MinecraftClient.getInstance().inGameHud.chatHud.addMessage(Text.literal(message))
+        Chat.message(message)
     }
 
     override fun clone() = NodeActionSendMessage(message)

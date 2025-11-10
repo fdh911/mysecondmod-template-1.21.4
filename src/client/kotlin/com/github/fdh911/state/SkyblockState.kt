@@ -1,11 +1,10 @@
 package com.github.fdh911.state
 
-import com.github.fdh911.modules.Module
 import com.github.fdh911.ui.UIWindow
 import imgui.ImGui
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 
-object SkyblockState: Module("Skyblock State") {
+object SkyblockState {
     enum class Area {
         HUB,
         PRIVATE_ISLAND,
@@ -74,7 +73,7 @@ object SkyblockState: Module("Skyblock State") {
     var currentArea: Area? = null
         private set
 
-    override fun update() {
+    fun update() {
         ScoreboardReader.update()
         val scoreboard = ScoreboardReader.scoreboard
 
@@ -101,18 +100,5 @@ object SkyblockState: Module("Skyblock State") {
         }.toSkyblockArea()
 
         Garden.update()
-    }
-
-    override fun renderUpdate(ctx: WorldRenderContext) { }
-
-    override fun UIWindow.setWindowContents() {
-        ImGui.separatorText("Basic")
-        ImGui.text("Is in skyblock: $isInSkyblock")
-        ImGui.text("Server closing: $isServerClosing")
-        ImGui.text("Current area: $currentArea")
-        ImGui.separatorText("Garden")
-        ImGui.text("Plot: ${Garden.currentPlot}")
-        ImGui.text("Pest count: ${Garden.pestCount}")
-        ImGui.text("Repellent: ${Garden.isUsingRepellent}")
     }
 }

@@ -1,6 +1,6 @@
 package com.github.fdh911.modules.macro.nodeactions
 
-import com.github.fdh911.modules.macro.KeySimulator
+import com.github.fdh911.modules.macro.controls.KeybindManager
 import com.github.fdh911.ui.UIWindow
 import com.github.fdh911.utils.translate
 import imgui.ImGui
@@ -26,9 +26,9 @@ class NodeActionKey(
 
     override suspend fun execute() {
         when(type) {
-            Type.HOLD     -> KeySimulator.hold(kbTranslationKey)
-            Type.RELEASE  -> KeySimulator.release(kbTranslationKey)
-            Type.PRESS    -> KeySimulator.press(kbTranslationKey)
+            Type.HOLD     -> KeybindManager.hold(kbTranslationKey)
+            Type.RELEASE  -> KeybindManager.release(kbTranslationKey)
+            Type.PRESS    -> KeybindManager.press(kbTranslationKey)
         }
     }
 
