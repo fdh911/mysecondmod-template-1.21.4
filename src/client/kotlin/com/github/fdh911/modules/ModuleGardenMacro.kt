@@ -11,6 +11,7 @@ import com.github.fdh911.render.Unicodes
 import com.github.fdh911.state.SkyblockState
 import com.github.fdh911.ui.UIWindow
 import imgui.ImGui
+import imgui.flag.ImGuiStyleVar
 import imgui.type.ImBoolean
 import imgui.type.ImInt
 import imgui.type.ImString
@@ -191,10 +192,13 @@ object ModuleGardenMacro: Module("Garden Macro")
                 for(i in scene.nodeList.indices) {
                     val node = scene.nodeList[i]
                     ImGui.pushID(i)
-                    if(ImGui.button(node.name))
-                        selectNodeInUI(node)
+                    ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0.0f, 0.0f)
+                    if(ImGui.smallButton(Unicodes.REMOVE.s)) {
+                        toRemove = i
+                        selectNodeInUI(null)
+                    }
                     ImGui.sameLine()
-                    if(ImGui.button(Unicodes.DUPLICATE.s)) {
+                    if(ImGui.smallButton(Unicodes.DUPLICATE.s)) {
                         val clonedNode = node.clone()
                         val regex = "(?<name>.*) (?<number>[0-9]*)".toRegex()
                         val match = regex.matchEntire(clonedNode.name)
@@ -208,11 +212,10 @@ object ModuleGardenMacro: Module("Garden Macro")
                         scene.nodeList.add(i + 1, clonedNode)
                         selectNodeInUI(clonedNode)
                     }
+                    ImGui.popStyleVar()
                     ImGui.sameLine()
-                    if(ImGui.button(Unicodes.REMOVE.s)) {
-                        toRemove = i
-                        selectNodeInUI(null)
-                    }
+                    if(ImGui.button(node.name))
+                        selectNodeInUI(node)
                     ImGui.popID()
                 }
                 ImGui.endListBox()
@@ -233,6 +236,7 @@ object ModuleGardenMacro: Module("Garden Macro")
                 UIState.sceneCreationNameEdit.get()
 
             currentScene = NodeScene(sceneName)
+            closeThisWindow()
         }
     }
 
@@ -295,16 +299,39 @@ object ModuleGardenMacro: Module("Garden Macro")
         ImGui.setNextItemWidth(-Float.MIN_VALUE)
         if(ImGui.collapsingHeader("Current actions")) {
             ImGui.setNextItemWidth(-Float.MIN_VALUE)
+            var toRemove = -1
             if(ImGui.beginListBox("##_4")) {
                 for(i in node.actions.indices) {
                     val action = node.actions[i]
-                    if(ImGui.selectable("${action}##action$i")) {
+                    ImGui.pushID(i)
+                    ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0.0f, 0.0f)
+                    if(ImGui.smallButton(Unicodes.REMOVE.s)) {
+                        toRemove = i
+                    }
+                    ImGui.sameLine()
+                    if(ImGui.smallButton(Unicodes.ANGLE_UP.s) && i > 0) {
+                        val aux = node.actions[i - 1]
+                        node.actions[i - 1] = node.actions[i]
+                        node.actions[i] = aux
+                    }
+                    ImGui.sameLine()
+                    if(ImGui.smallButton(Unicodes.ANGLE_DOWN.s) && i < node.actions.size - 1) {
+                        val aux = node.actions[i + 1]
+                        node.actions[i + 1] = node.actions[i]
+                        node.actions[i] = aux
+                    }
+                    ImGui.popStyleVar()
+                    ImGui.sameLine()
+                    if(ImGui.button(action.toString())) {
                         UIState.actionPtr = action
                         + action.getEditorWindow()
                     }
+                    ImGui.popID()
                 }
                 ImGui.endListBox()
             }
+            if(toRemove != -1)
+                node.actions.removeAt(toRemove)
         }
 
         val updatedPos = BlockPos(
