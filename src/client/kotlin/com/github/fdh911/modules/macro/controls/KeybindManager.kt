@@ -1,6 +1,8 @@
 package com.github.fdh911.modules.macro.controls
 
+import com.github.fdh911.utils.Chat
 import com.github.fdh911.utils.boundKey
+import com.github.fdh911.utils.handleBlockBreaking
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.option.KeyBinding
 
@@ -40,7 +42,13 @@ object KeybindManager {
         finishedPress.clear()
 
         for(key in toHold) {
-            KeyBinding.setKeyPressed(key.boundKey, true)
+            if(key == MinecraftClient.getInstance().options.attackKey) {
+                Chat.message("This is a block break")
+                MinecraftClient.getInstance().attackCooldown = 0
+                MinecraftClient.getInstance().handleBlockBreaking(true)
+            }
+            else
+                KeyBinding.setKeyPressed(key.boundKey, true)
         }
 
         for(key in toPress) {

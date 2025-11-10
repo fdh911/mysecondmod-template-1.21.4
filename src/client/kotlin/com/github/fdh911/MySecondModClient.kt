@@ -41,7 +41,7 @@ object MySecondModClient : ClientModInitializer {
             state.restoreAll()
 		}
 
-		ClientTickEvents.END_CLIENT_TICK.register {
+		ClientTickEvents.START_CLIENT_TICK.register {
 			if(mc.player == null || mc.world == null) return@register
 
             ModuleList.update()
