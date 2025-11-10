@@ -3,7 +3,8 @@
 	"package": "com.github.fdh911.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"MouseMixin"
+		"MouseMixin",
+        "KeybindingAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

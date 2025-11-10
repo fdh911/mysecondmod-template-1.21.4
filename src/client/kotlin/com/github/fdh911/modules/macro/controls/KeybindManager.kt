@@ -1,5 +1,6 @@
 package com.github.fdh911.modules.macro.controls
 
+import com.github.fdh911.utils.boundKey
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.option.KeyBinding
 
@@ -22,11 +23,11 @@ object KeybindManager {
 
     fun clear() {
         for(key in toHold)
-            key.isPressed = false
+            KeyBinding.setKeyPressed(key.boundKey, false)
         for(key in toPress)
-            key.isPressed = false
+            KeyBinding.setKeyPressed(key.boundKey, false)
         for(key in finishedPress)
-            key.isPressed = false
+            KeyBinding.setKeyPressed(key.boundKey, false)
         toHold.clear()
         toPress.clear()
         toRelease.clear()
@@ -35,24 +36,25 @@ object KeybindManager {
 
     fun update() {
         for(key in finishedPress)
-            key.isPressed = false
+            KeyBinding.setKeyPressed(key.boundKey, false)
         finishedPress.clear()
 
-        for(key in toHold)
-            key.isPressed = true
+        for(key in toHold) {
+            KeyBinding.setKeyPressed(key.boundKey, true)
+        }
 
         for(key in toPress) {
-            key.isPressed = true
-            KeyBinding.onKeyPressed(key.defaultKey)
+            KeyBinding.onKeyPressed(key.boundKey)
             finishedPress.add(key)
         }
         toPress.clear()
 
         for(key in toRelease)
             if(toHold.contains(key)) {
-                key.isPressed = false
+                KeyBinding.setKeyPressed(key.boundKey, false)
                 toHold.remove(key)
             }
+
         toRelease.clear()
     }
 }
