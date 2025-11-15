@@ -4,7 +4,6 @@ import com.github.fdh911.utils.RandomizedArc
 import com.github.fdh911.utils.mc
 import com.github.fdh911.utils.plus
 import com.github.fdh911.utils.times
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import net.minecraft.client.MinecraftClient
 import org.joml.Vector2f
