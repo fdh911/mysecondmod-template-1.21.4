@@ -1,6 +1,7 @@
 package com.github.fdh911.modules.macro.controls
 
 import com.github.fdh911.utils.RandomizedArc
+import com.github.fdh911.utils.mc
 import com.github.fdh911.utils.plus
 import com.github.fdh911.utils.times
 import kotlinx.coroutines.CompletableDeferred
@@ -10,6 +11,7 @@ import org.joml.Vector2f
 import org.lwjgl.glfw.GLFW.*
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.floor
 import kotlin.math.min
 import kotlin.random.Random
 
@@ -18,12 +20,11 @@ object CursorManager
     var isMouseLocked = false
 
     suspend fun moveMouseCursor(xPos: Int, yPos: Int) {
-        val client = MinecraftClient.getInstance()
-        val windowPtr = client.window.handle
+        val hwnd = mc.window.handle
 
         val xPtr = doubleArrayOf(0.0)
         val yPtr = doubleArrayOf(0.0)
-        glfwGetCursorPos(windowPtr, xPtr, yPtr)
+        glfwGetCursorPos(hwnd, xPtr, yPtr)
 
         val start = Vector2f(xPtr[0].toFloat(), yPtr[0].toFloat())
         val end = Vector2f(xPos.toFloat(), yPos.toFloat())
@@ -34,7 +35,7 @@ object CursorManager
             precision = 1.0f,
             maxError = 50.0f,
         ) {
-            point: Vector2f -> glfwSetCursorPos(windowPtr, point.x.toDouble(), point.y.toDouble())
+            point -> glfwSetCursorPos(hwnd, point.x.toDouble(), point.y.toDouble())
         }
     }
 
@@ -44,23 +45,17 @@ object CursorManager
     }
 
     suspend fun rotateHeadAbsolute(yaw: Float, pitch: Float) {
-        val player = MinecraftClient.getInstance().player!!
+        val player = mc.player!!
 
-        val yawOffset = player.yaw.let {
-            var yaw = it
-            var offset = 0.0f
-            while(yaw < 180.0f) { yaw += 360.0f; offset += 360.0f }
-            while(yaw >= 180.0f) { yaw -= 360.0f; offset -= 360.0f }
-            offset
-        }
+        val offset = floor((player.yaw + 180.0f) / 360.0f) * 360.0f
 
         generate(
-            start = Vector2f(player.yaw + yawOffset, player.pitch),
-            end = Vector2f(yaw, pitch),
+            start = Vector2f(player.yaw, player.pitch),
+            end = Vector2f(yaw + offset, pitch),
             precision = 1.0f,
             maxError = 30.0f
         ) {
-            point: Vector2f -> player.rotate(point.x, point.y)
+            point -> player.rotate(point.x, point.y)
         }
     }
 
