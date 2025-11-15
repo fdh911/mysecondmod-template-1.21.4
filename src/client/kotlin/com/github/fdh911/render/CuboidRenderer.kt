@@ -1,6 +1,7 @@
 package com.github.fdh911.render
 
 import com.github.fdh911.render.opengl.*
+import com.github.fdh911.render.opengl.GLVertexArray.*
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -34,50 +35,109 @@ object CuboidRenderer {
         1, 6, 5,
     )
 
-    private val program: GLProgram
-    private val vbo: GLVertexBuffer
-    private val ebo: GLElementBuffer
+    private val programSingle: GLProgram
+    private val programInstanced: GLProgram
+
     private val vao: GLVertexArray
+    private val ebo: GLElementBuffer
+
+    private val verticesVbo: GLVertexBuffer
+    private val instanceVbo: GLVertexBuffer
+
+    private const val INSTANCE_FLOAT_COUNT = 10
+    private var instanceBufferData: FloatArray? = null
+    private var currentInstance = 0
+    private var instanceCount = 0
 
     init {
         val state = GLState2().apply { saveAll() }
 
-        program = GLProgram("/shaders/poscolor.vert", "/shaders/poscolor.frag").apply {
-            bind()
-        }
+        programSingle = GLProgram.fromClasspath("poscolor")
+        programInstanced = GLProgram.fromClasspath("cuboidsInstanced")
 
-        vbo = GLVertexBuffer().apply {
-            bind()
-            setData(vertices, GLVertexBuffer.Usage.STATIC)
-        }
+        verticesVbo = GLVertexBuffer.withStaticVertices(*vertices)
+        instanceVbo = GLVertexBuffer()
 
-        ebo = GLElementBuffer().apply {
-            bind()
-            setData(indices, GLElementBuffer.Usage.STATIC)
-        }
+        ebo = GLElementBuffer.withStaticIndices(*indices)
 
-        vao = GLVertexArray(3 to GLVertexArray.Attrib.FLOAT).apply {
-            bind()
-        }
-
-        vao.unbind()
-        vbo.unbind()
-        ebo.unbind()
-        program.unbind()
+        vao = GLVertexArray(
+            AttribRegular(verticesVbo, 3),      // model vertices
+            AttribInstanced(instanceVbo, 3, 1), // instance translation
+            AttribInstanced(instanceVbo, 3, 1), // instance scaling
+            AttribInstanced(instanceVbo, 4, 1), // instance color
+            elementBuffer = ebo,
+        )
 
         state.restoreAll()
     }
 
-    fun render(ctx: WorldRenderContext, pos: Vector3f, scale: Vector3f, color: Vector4f) {
-        val cam = ctx.camera()
+    fun newInstancing(howManyInstances: Int) {
+        currentInstance = 0
+        instanceCount = howManyInstances
+        instanceBufferData = FloatArray(instanceCount * INSTANCE_FLOAT_COUNT)
+    }
 
-        val proj = Matrix4f(ctx.projectionMatrix())
-        val view = Matrix4f(ctx.positionMatrix())
-            .translate(cam.pos.toVector3f().negate())
+    fun addCubeInstance(pos: Vector3f, color: Vector4f) = addInstance(pos, Vector3f(1.0f, 1.0f, 1.0f), color)
+
+    fun addInstance(pos: Vector3f, scale: Vector3f, color: Vector4f) {
+        val offset = currentInstance * INSTANCE_FLOAT_COUNT
+        val array = instanceBufferData!!
+        array[offset + 0] = pos.x
+        array[offset + 1] = pos.y
+        array[offset + 2] = pos.z
+        array[offset + 3] = scale.x
+        array[offset + 4] = scale.y
+        array[offset + 5] = scale.z
+        array[offset + 6] = color.x
+        array[offset + 7] = color.y
+        array[offset + 8] = color.z
+        array[offset + 9] = color.w
+        currentInstance++
+    }
+
+    fun renderInstanced(ctx: WorldRenderContext) {
+        val projView = getProjView(ctx)
+        val state = saveAndSetupState()
+
+        vao.bind()
+        instanceVbo.setData(instanceBufferData!!, GLVertexBuffer.Usage.DYNAMIC)
+
+        programInstanced.bind()
+        programInstanced.setMat4("uProjView", projView)
+
+        glDrawElementsInstanced(GL_TRIANGLES, indices.size, GL_UNSIGNED_INT, 0L, instanceCount)
+
+        restoreState(state)
+    }
+
+    fun renderSingle(ctx: WorldRenderContext, pos: Vector3f, scale: Vector3f, color: Vector4f) {
+        val projView = getProjView(ctx)
         val model = Matrix4f()
             .translate(pos)
             .scale(scale)
 
+        val state = saveAndSetupState()
+
+        vao.bind()
+        programSingle.bind()
+        programSingle.setMat4("uProjView", projView)
+        programSingle.setMat4("uModel", model)
+        programSingle.setVec4("uColor", color)
+
+        glDrawElements(GL_TRIANGLES, indices.size, GL_UNSIGNED_INT, 0L)
+
+        restoreState(state)
+    }
+
+    private fun getProjView(ctx: WorldRenderContext): Matrix4f {
+        val cam = ctx.camera()
+        val proj = Matrix4f(ctx.projectionMatrix())
+        val view = Matrix4f(ctx.positionMatrix())
+            .translate(cam.pos.toVector3f().negate())
+        return Matrix4f(proj).mul(view)
+    }
+
+    private fun saveAndSetupState(): GLState2 {
         val stateSave = GLState2().apply {
             saveBlend()
             saveDepth()
@@ -91,16 +151,11 @@ object CuboidRenderer {
         glDepthMask(false)
         glDisable(GL_CULL_FACE)
 
-        program.bind()
-        program.setMat4("uProjView", Matrix4f(proj).mul(view))
-        program.setMat4("uModel", model)
-        program.setVec4("uColor", color)
-        vao.bind()
-        vbo.bind()
-        ebo.bind()
-        glDrawElements(GL_TRIANGLES, indices.size, GL_UNSIGNED_INT, 0L)
+        return stateSave
+    }
 
-        stateSave.apply {
+    private fun restoreState(state: GLState2) {
+        state.apply {
             restoreProgramAndBuffers()
             restoreRaster()
             restoreDepth()

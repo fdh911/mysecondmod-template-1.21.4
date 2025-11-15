@@ -65,7 +65,7 @@ object ModuleEntityScanner : Module("Entity Scanner") {
             val color = Vector4f(closeColor)
                 .add(Vector4f(farColor).sub(closeColor).mul(lerp))
 
-            CuboidRenderer.render(
+            CuboidRenderer.renderSingle(
                 ctx,
                 aabb.minPos.toVector3f() + delta,
                 aabb.maxPos.toVector3f() - aabb.minPos.toVector3f(),

@@ -2,6 +2,7 @@ package com.github.fdh911.render
 
 import com.github.fdh911.render.opengl.*
 import org.lwjgl.opengl.GL45.*
+import com.github.fdh911.render.opengl.GLVertexArray.*
 
 object OverlayRender {
     val texProgram: GLProgram
@@ -33,17 +34,11 @@ object OverlayRender {
             2, 3, 0,
         )
 
-        vbo.bind()
-        ebo.bind()
         vao = GLVertexArray(
-            2 to GLVertexArray.Attrib.FLOAT,
-            2 to GLVertexArray.Attrib.FLOAT,
+            AttribRegular(vbo, 2),
+            AttribRegular(vbo, 2),
+            elementBuffer = ebo
         )
-
-        texProgram.unbind()
-        vao.unbind()
-        vbo.unbind()
-        ebo.unbind()
 
         state.restoreAll()
     }

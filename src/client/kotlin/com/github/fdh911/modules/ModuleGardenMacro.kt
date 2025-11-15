@@ -19,7 +19,6 @@ import imgui.type.ImString
 import kotlinx.coroutines.DelicateCoroutinesApi
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.MinecraftClient
-import net.minecraft.util.math.BlockPos
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector3i
@@ -97,29 +96,30 @@ object ModuleGardenMacro: Module("Garden Macro")
     object RenderConstants {
         val red = Vector4f(1.0f, 0.0f, 0.0f, 0.4f)
         val blue = Vector4f(0.0f, 0.0f, 1.0f, 0.4f)
-        val scale = Vector3f(1.0f, 1.0f, 1.0f)
     }
 
     override fun onRenderUpdate(ctx: WorldRenderContext) {
         if(currentScene == null) return
         val scene = currentScene!!
+
+        CuboidRenderer.newInstancing(scene.nodeList.size)
+
         for(node in scene.nodeList) {
             val posVector3f = Vector3f(
                 node.pos.x.toFloat(),
                 node.pos.y.toFloat(),
                 node.pos.z.toFloat(),
             )
+
             val color = if(node == currentNode)
                 RenderConstants.red
             else
                 RenderConstants.blue
-            CuboidRenderer.render(
-                ctx,
-                posVector3f,
-                RenderConstants.scale,
-                color
-            )
+
+            CuboidRenderer.addCubeInstance(posVector3f, color)
         }
+
+        CuboidRenderer.renderInstanced(ctx)
     }
 
     override fun UIWindow.setWindowContents() = with(MainWindowContents) { windowContents() }
