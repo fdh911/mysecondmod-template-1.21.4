@@ -58,6 +58,8 @@ object ModuleEntityScanner : Module("Entity Scanner") {
     private val farColor = Vector4f(0.0f, 0.0f, 1.0f, 0.4f)
 
     override fun onRenderUpdate(ctx: WorldRenderContext) {
+        CuboidRenderer.newInstancing(savedEntityList.size)
+
         for((dist, entity) in savedEntityList) {
             val aabb = entity.boundingBox
             val delta = entity.interpolatedPos() - entity.pos.toVector3f()
@@ -65,13 +67,14 @@ object ModuleEntityScanner : Module("Entity Scanner") {
             val color = Vector4f(closeColor)
                 .add(Vector4f(farColor).sub(closeColor).mul(lerp))
 
-            CuboidRenderer.renderSingle(
-                ctx,
+            CuboidRenderer.addInstance(
                 aabb.minPos.toVector3f() + delta,
                 aabb.maxPos.toVector3f() - aabb.minPos.toVector3f(),
                 color
             )
         }
+
+        CuboidRenderer.renderInstanced(ctx)
     }
 
     private val limitRadius = ImBoolean(false)
