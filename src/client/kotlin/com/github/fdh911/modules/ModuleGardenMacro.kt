@@ -144,22 +144,26 @@ object ModuleGardenMacro: Module("Garden Macro")
     }
 
     private object NodeEditorWindow {
+        var node: Node? = null
         private val nameImString = ImString()
         private val xImInt = ImInt()
         private val yImInt = ImInt()
         private val zImInt = ImInt()
         private var actionWindow: UIWindow? = null
 
-        fun getWindow(node: Node?) = UIWindow("Edit node") {
+        fun getWindow() = UIWindow("Edit node") {
             if(node == null) {
+                actionWindow?.closeThisWindow()
                 closeThisWindow()
                 return@UIWindow
             }
 
-            nameImString.set(node.name)
-            xImInt.set(node.pos.x)
-            yImInt.set(node.pos.y)
-            zImInt.set(node.pos.z)
+            val n = node!!
+
+            nameImString.set(n.name)
+            xImInt.set(n.pos.x)
+            yImInt.set(n.pos.y)
+            zImInt.set(n.pos.z)
 
             ImGui.separatorText("Name")
             ImGui.setNextItemWidth(-Float.MIN_VALUE)
@@ -188,7 +192,7 @@ object ModuleGardenMacro: Module("Garden Macro")
                 }
 
                 if(actionToAdd != null) {
-                    node.actions.add(actionToAdd)
+                    n.actions.add(actionToAdd)
                     actionWindow?.closeThisWindow()
                     actionWindow = actionToAdd.getEditorWindow()
                     + actionWindow!!
@@ -197,7 +201,7 @@ object ModuleGardenMacro: Module("Garden Macro")
 
             ImGui.setNextItemWidth(-Float.MIN_VALUE)
             if(ImGui.collapsingHeader("Current actions")) {
-                val actions = node.actions
+                val actions = n.actions
 
                 ImGui.setNextItemWidth(-Float.MIN_VALUE)
                 if(ImGui.beginListBox("##_currentActions")) {
@@ -249,11 +253,11 @@ object ModuleGardenMacro: Module("Garden Macro")
                 zImInt.get(),
             )
 
-            if(node.pos != newPos)
+            if(n.pos != newPos)
                 nodesShouldUpdate = true
 
-            node.name = nameImString.get()
-            node.pos = newPos
+            n.name = nameImString.get()
+            n.pos = newPos
         }
     }
 
@@ -275,6 +279,7 @@ object ModuleGardenMacro: Module("Garden Macro")
                 if(ImGui.selectable(name)) {
                     currentScene = NodeScene.loadFromFile(file)
                     nodesShouldUpdate = true
+                    NodeEditorWindow.node = null
                     closeThisWindow()
                 }
                 ImGui.popID()
@@ -296,6 +301,7 @@ object ModuleGardenMacro: Module("Garden Macro")
 
                 currentScene = NodeScene(sceneName)
                 nodesShouldUpdate = true
+                NodeEditorWindow.node = null
 
                 closeThisWindow()
             }
@@ -346,7 +352,8 @@ object ModuleGardenMacro: Module("Garden Macro")
                 nodes.add(node)
                 nodesShouldUpdate = true
 
-                + NodeEditorWindow.getWindow(node)
+                NodeEditorWindow.node = node
+                + NodeEditorWindow.getWindow()
             }
 
             ImGui.setNextItemWidth(-Float.MIN_VALUE)
@@ -378,18 +385,23 @@ object ModuleGardenMacro: Module("Garden Macro")
                             nodes.add(i + 1, clonedNode)
                             nodesShouldUpdate = true
 
-                            + NodeEditorWindow.getWindow(clonedNode)
+                            NodeEditorWindow.node = clonedNode
+                            + NodeEditorWindow.getWindow()
                         }
                         ImGui.popStyleVar()
 
                         ImGui.sameLine()
-                        if(ImGui.button(node.name))
-                            + NodeEditorWindow.getWindow(node)
+                        if(ImGui.button(node.name)) {
+                            NodeEditorWindow.node = node
+                            + NodeEditorWindow.getWindow()
+                        }
 
                         ImGui.popID()
                     }
 
                     if(toRemove != null) {
+                        if(nodes[toRemove] == NodeEditorWindow.node)
+                            NodeEditorWindow.node = null
                         nodes.removeAt(toRemove)
                         nodesShouldUpdate = true
                     }
