@@ -7,8 +7,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.apache.logging.log4j.LogManager
-import java.util.LinkedList
-import java.util.Queue
+import java.util.*
 
 object ActionQueue
 {

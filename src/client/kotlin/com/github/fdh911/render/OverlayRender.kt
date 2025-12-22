@@ -1,8 +1,8 @@
 package com.github.fdh911.render
 
 import com.github.fdh911.render.opengl.*
+import com.github.fdh911.render.opengl.GLVertexArray.AttribRegular
 import org.lwjgl.opengl.GL45.*
-import com.github.fdh911.render.opengl.GLVertexArray.*
 
 object OverlayRender {
     val texProgram: GLProgram

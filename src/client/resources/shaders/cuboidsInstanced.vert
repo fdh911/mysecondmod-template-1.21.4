@@ -8,6 +8,7 @@ layout(location = 3) in vec4 aColor;
 uniform mat4 uProjView;
 
 out vec4 fragColor;
+out vec3 fragPos;
 
 void main() {
     vec3 scaledLocalPos = vec3(
@@ -23,5 +24,7 @@ void main() {
     );
 
     gl_Position = uProjView * vec4(translatedLocalPos, 1.0f);
+
     fragColor = aColor;
+    fragPos = translatedLocalPos;
 }

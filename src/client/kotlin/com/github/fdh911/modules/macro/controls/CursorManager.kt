@@ -7,7 +7,8 @@ import com.github.fdh911.utils.times
 import kotlinx.coroutines.delay
 import net.minecraft.client.MinecraftClient
 import org.joml.Vector2f
-import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFW.glfwGetCursorPos
+import org.lwjgl.glfw.GLFW.glfwSetCursorPos
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.floor

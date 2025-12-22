@@ -1,7 +1,7 @@
 package com.github.fdh911.render.opengl
 
+import org.lwjgl.opengl.ARBInstancedArrays.glVertexAttribDivisorARB
 import org.lwjgl.opengl.GL45.*
-import org.lwjgl.opengl.ARBInstancedArrays.*
 
 class GLVertexArray(
     vararg attribs: IAttrib,
@@ -33,17 +33,20 @@ class GLVertexArray(
 
     val id = glGenVertexArrays()
 
+    val vboToAttrib: Map<GLVertexBuffer, List<IAttrib>>
+
     fun bind() { glBindVertexArray(id) }
     fun unbind() { glBindVertexArray(0) }
 
-    // todo switch to dsa at some point
     init {
         bind()
         elementBuffer?.bind()
 
         var attribIdx = 0
 
-        attribs.groupBy { it.vbo }.forEach { (vbo, attribList) ->
+        vboToAttrib = attribs.groupBy { it.vbo }
+
+        vboToAttrib.forEach { (vbo, attribList) ->
             vbo.bind()
 
             val stride = attribList.sumOf { it.amount * it.type.size }

@@ -1,9 +1,5 @@
 package com.github.fdh911.state
 
-import com.github.fdh911.ui.UIWindow
-import imgui.ImGui
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
-
 object SkyblockState {
     enum class Area {
         HUB,

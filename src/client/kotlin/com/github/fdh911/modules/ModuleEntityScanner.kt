@@ -1,7 +1,8 @@
 package com.github.fdh911.modules
 
-import com.github.fdh911.render.CuboidRenderer
+import com.github.fdh911.render.TranslucentCuboids
 import com.github.fdh911.ui.UIWindow
+import com.github.fdh911.utils.interpolatedPos
 import imgui.ImGui
 import imgui.type.ImBoolean
 import imgui.type.ImString
@@ -58,7 +59,8 @@ object ModuleEntityScanner : Module("Entity Scanner") {
     private val farColor = Vector4f(0.0f, 0.0f, 1.0f, 0.4f)
 
     override fun onRenderUpdate(ctx: WorldRenderContext) {
-        CuboidRenderer.newInstancing(savedEntityList.size)
+        val renderer = TranslucentCuboids.Instanced()
+        renderer.begin(savedEntityList.size)
 
         for((dist, entity) in savedEntityList) {
             val aabb = entity.boundingBox
@@ -67,14 +69,19 @@ object ModuleEntityScanner : Module("Entity Scanner") {
             val color = Vector4f(closeColor)
                 .add(Vector4f(farColor).sub(closeColor).mul(lerp))
 
-            CuboidRenderer.addInstance(
-                aabb.minPos.toVector3f() + delta,
-                aabb.maxPos.toVector3f() - aabb.minPos.toVector3f(),
-                color
+            renderer.addRect(
+                pos = aabb.minPos.toVector3f() + delta,
+                scale = aabb.maxPos.toVector3f() - aabb.minPos.toVector3f(),
+                color = color
             )
         }
 
-        CuboidRenderer.renderInstanced(ctx)
+        renderer.finish()
+        renderer.render(
+            ctx = ctx,
+            drawSolids = true,
+            drawOutlines = true,
+        )
     }
 
     private val limitRadius = ImBoolean(false)
@@ -146,15 +153,6 @@ object ModuleEntityScanner : Module("Entity Scanner") {
 
             ImGui.endListBox()
         }
-    }
-
-    private fun Entity.interpolatedPos(): Vector3f {
-        val partialTick = MinecraftClient.getInstance().renderTickCounter!!.getTickDelta(true)
-        return Vector3f(
-            (prevX + (x - prevX) * partialTick).toFloat(),
-            (prevY + (y - prevY) * partialTick).toFloat(),
-            (prevZ + (z - prevZ) * partialTick).toFloat(),
-        )
     }
 
     private operator fun Vector3f.plus(other: Vector3f): Vector3f = add(other)

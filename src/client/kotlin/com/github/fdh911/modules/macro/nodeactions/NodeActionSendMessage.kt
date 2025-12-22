@@ -6,8 +6,6 @@ import imgui.ImGui
 import imgui.type.ImString
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import net.minecraft.client.MinecraftClient
-import net.minecraft.text.Text
 
 @Serializable
 @SerialName("SendMessage")

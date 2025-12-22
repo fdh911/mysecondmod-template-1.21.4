@@ -2,7 +2,6 @@ package com.github.fdh911.utils
 
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.minecraft.client.option.KeyBinding
-import kotlin.collections.iterator
 
 object KeybindRegistry {
     private val registered = mutableMapOf<KeyBinding, () -> Unit>()

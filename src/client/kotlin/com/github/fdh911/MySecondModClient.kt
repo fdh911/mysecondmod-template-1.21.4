@@ -1,6 +1,5 @@
 package com.github.fdh911
 
-import com.github.fdh911.utils.KeybindRegistry
 import com.github.fdh911.modules.ModuleGardenMacro
 import com.github.fdh911.modules.ModuleList
 import com.github.fdh911.modules.macro.controls.ActionQueue
@@ -8,6 +7,7 @@ import com.github.fdh911.modules.macro.controls.KeybindManager
 import com.github.fdh911.render.opengl.GLState2
 import com.github.fdh911.state.SkyblockState
 import com.github.fdh911.ui.UI
+import com.github.fdh911.utils.KeybindRegistry
 import com.github.fdh911.utils.mc
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents

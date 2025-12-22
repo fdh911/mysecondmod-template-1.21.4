@@ -6,7 +6,7 @@ import com.github.fdh911.modules.macro.controls.ActionQueue
 import com.github.fdh911.modules.macro.controls.CursorManager
 import com.github.fdh911.modules.macro.controls.KeybindManager
 import com.github.fdh911.modules.macro.nodeactions.*
-import com.github.fdh911.render.CuboidRenderer
+import com.github.fdh911.render.TranslucentCuboids
 import com.github.fdh911.render.Unicodes
 import com.github.fdh911.state.SkyblockState
 import com.github.fdh911.ui.UIWindow
@@ -31,6 +31,9 @@ import kotlin.math.min
 @OptIn(DelicateCoroutinesApi::class)
 object ModuleGardenMacro: Module("Garden Macro")
 {
+    private var nodeRenderer: TranslucentCuboids.Instanced? = null
+    private var nodesShouldUpdate = false
+
     var currentScene: NodeScene? = null
     var currentNode: Node? = null
 
@@ -94,35 +97,51 @@ object ModuleGardenMacro: Module("Garden Macro")
     }
 
     object RenderConstants {
-        val red = Vector4f(1.0f, 0.0f, 0.0f, 0.4f)
-        val blue = Vector4f(0.0f, 0.0f, 1.0f, 0.4f)
+        val red = Vector3f(1.0f, 0.0f, 0.0f)
+        val blue = Vector3f(0.0f, 0.0f, 1.0f)
     }
 
     override fun onRenderUpdate(ctx: WorldRenderContext) {
-        if(currentScene == null) return
+        if(nodesShouldUpdate) {
+            onNodesChanged()
+            nodesShouldUpdate = false
+        }
+
+        nodeRenderer?.render(
+            ctx = ctx,
+            drawSolids = true,
+            drawOutlines = true,
+        )
+    }
+
+    override fun UIWindow.setWindowContents() = with(MainWindowContents) { windowContents() }
+
+    fun onNodesChanged() {
+        if(currentScene == null) {
+            nodeRenderer = null
+            return
+        }
+
         val scene = currentScene!!
 
-        CuboidRenderer.newInstancing(scene.nodeList.size)
+        val renderer = TranslucentCuboids.Instanced()
+        renderer.begin(scene.nodeList.size)
 
         for(node in scene.nodeList) {
-            val posVector3f = Vector3f(
-                node.pos.x.toFloat(),
-                node.pos.y.toFloat(),
-                node.pos.z.toFloat(),
-            )
-
             val color = if(node == currentNode)
                 RenderConstants.red
             else
                 RenderConstants.blue
 
-            CuboidRenderer.addCubeInstance(posVector3f, color)
+            renderer.addCube(
+                pos = Vector3f(node.pos),
+                color = Vector4f(color, 0.3f)
+            )
         }
 
-        CuboidRenderer.renderInstanced(ctx)
+        renderer.finish()
+        nodeRenderer = renderer
     }
-
-    override fun UIWindow.setWindowContents() = with(MainWindowContents) { windowContents() }
 
     private object NodeEditorWindow {
         private val nameImString = ImString()
@@ -224,10 +243,17 @@ object ModuleGardenMacro: Module("Garden Macro")
 
             ImGui.dummy(300.0f, 0.0f)
 
+            val newPos = Vector3i(
+                xImInt.get(),
+                yImInt.get(),
+                zImInt.get(),
+            )
+
+            if(node.pos != newPos)
+                nodesShouldUpdate = true
+
             node.name = nameImString.get()
-            node.pos.x = xImInt.get()
-            node.pos.y = yImInt.get()
-            node.pos.z = zImInt.get()
+            node.pos = newPos
         }
     }
 
@@ -248,6 +274,7 @@ object ModuleGardenMacro: Module("Garden Macro")
                 ImGui.pushID(i)
                 if(ImGui.selectable(name)) {
                     currentScene = NodeScene.loadFromFile(file)
+                    nodesShouldUpdate = true
                     closeThisWindow()
                 }
                 ImGui.popID()
@@ -268,6 +295,7 @@ object ModuleGardenMacro: Module("Garden Macro")
                 val sceneName = nameImString.let { if(it.isEmpty) "Unnamed" else it.get() }
 
                 currentScene = NodeScene(sceneName)
+                nodesShouldUpdate = true
 
                 closeThisWindow()
             }
@@ -316,6 +344,7 @@ object ModuleGardenMacro: Module("Garden Macro")
                 val node = Node(pos, name)
 
                 nodes.add(node)
+                nodesShouldUpdate = true
 
                 + NodeEditorWindow.getWindow(node)
             }
@@ -347,6 +376,8 @@ object ModuleGardenMacro: Module("Garden Macro")
                                 ?: "${clonedNode.name} 1"
 
                             nodes.add(i + 1, clonedNode)
+                            nodesShouldUpdate = true
+
                             + NodeEditorWindow.getWindow(clonedNode)
                         }
                         ImGui.popStyleVar()
@@ -358,8 +389,10 @@ object ModuleGardenMacro: Module("Garden Macro")
                         ImGui.popID()
                     }
 
-                    if(toRemove != null)
+                    if(toRemove != null) {
                         nodes.removeAt(toRemove)
+                        nodesShouldUpdate = true
+                    }
 
                     ImGui.endListBox()
                 }
