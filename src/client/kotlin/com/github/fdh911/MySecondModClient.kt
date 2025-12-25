@@ -16,7 +16,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
 import org.lwjgl.glfw.GLFW
 
-object MySecondModClient : ClientModInitializer {
+object MySecondModClient : ClientModInitializer
+{
 	override fun onInitializeClient() {
 		KeybindRegistry.register("Open / Close UI", GLFW.GLFW_KEY_J) {
 			if(mc.currentScreen === UI.MCScreen)
@@ -37,14 +38,14 @@ object MySecondModClient : ClientModInitializer {
 			if(mc.player == null || mc.world == null) return@register
 
             val state = GLState2().apply { saveAll() }
-            ConfigManager.activeConfig.renderUpdate(ctx)
+            ConfigManager.activeConfig?.renderUpdate(ctx)
             state.restoreAll()
 		}
 
 		ClientTickEvents.START_CLIENT_TICK.register {
 			if(mc.player == null || mc.world == null) return@register
 
-            ConfigManager.activeConfig.update()
+            ConfigManager.activeConfig?.update()
 
 			KeybindRegistry.update()
             SkyblockState.update()
@@ -64,7 +65,6 @@ object MySecondModClient : ClientModInitializer {
 			val state = GLState2().apply { saveAll() }
             UI.render {
                 ConfigManager.window.render()
-                ConfigManager.activeConfig.window.render()
             }
 			state.restoreAll()
 		}

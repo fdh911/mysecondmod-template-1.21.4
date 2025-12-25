@@ -5,8 +5,15 @@ import imgui.ImGui
 import imgui.type.ImString
 import java.io.File
 
-object ConfigManager {
-    var activeConfig = ModuleList()
+object ConfigManager
+{
+    var activeConfig: ModuleList? = null
+        set(value) {
+            field?.window?.closeThisWindow()
+            field = value
+            if(field != null)
+                with(window) { + field!!.window }
+        }
 
     val window = UIWindow("Config") {
         if(ImGui.button("Load config"))
@@ -14,6 +21,8 @@ object ConfigManager {
         if(ImGui.button("Save config"))
             + saveConfigWindow
     }
+
+    init { activeConfig = ModuleList() }
 
     private val loadConfigWindow = UIWindow("Load config") {
         val files = File(".").listFiles().filter { ".*[.]msmconfig$".toRegex().matchEntire(it.name) != null }
@@ -36,7 +45,7 @@ object ConfigManager {
         ImGui.inputText("##_1", configNameImString)
         ImGui.setNextItemWidth(-Float.MIN_VALUE)
         if(ImGui.button("Save")) {
-            activeConfig.save(configNameImString.get())
+            activeConfig?.save(configNameImString.get())
             closeThisWindow()
         }
     }

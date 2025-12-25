@@ -8,9 +8,12 @@ import imgui.type.ImBoolean
 
 open class UIWindow(
     val title: String,
+    val pos: Pair<Float, Float>? = null,
+    val closeable: Boolean = true,
     var parent: UIWindow? = null,
     val block: UIWindow.() -> Unit
-) {
+)
+{
     private val children = mutableMapOf<String, UIWindow>()
 
     private val keepOpen = ImBoolean(true)
@@ -48,7 +51,7 @@ open class UIWindow(
         ImGui.setNextWindowSizeConstraints(minWindowWidth, 0.0f, Float.MAX_VALUE, Float.MAX_VALUE)
         ImGui.setNextWindowSize(0.0f, 0.0f)
 
-        val openOrNull = if(parent != null) keepOpen else null
+        val openOrNull = if(parent != null && closeable) keepOpen else null
         if(ImGui.begin(title, openOrNull, ImGuiWindowFlags.NoResize)) {
             ImGui.pushFont(UI.smallFont)
             this.block()
@@ -56,7 +59,9 @@ open class UIWindow(
         }
 
         val windowPosition = ImGui.getWindowPos()
-        val childPosition = ImVec2(windowPosition.x + 15.0f, windowPosition.y + 15.0f)
+        val childPosition =
+            if(pos != null) ImVec2(pos.first, pos.second)
+            else ImVec2(windowPosition.x + 15.0f, windowPosition.y + 15.0f)
 
         ImGui.popFont()
         ImGui.end()

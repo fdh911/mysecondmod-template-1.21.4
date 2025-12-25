@@ -29,7 +29,7 @@ class ModuleList
         ModuleNoPause(),
     )
 
-    @Transient val window = UIWindow("Modules") {
+    @Transient val window = UIWindow("Modules", closeable = false) {
         for(module in modules) {
             val title = "${if(module.toggled) Unicodes.CHECKBOX_1 else Unicodes.CHECKBOX_0} ${module.name}"
             if(ImGui.selectable(title))
