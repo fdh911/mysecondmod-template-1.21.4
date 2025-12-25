@@ -1,6 +1,6 @@
 package com.github.fdh911
 
-import com.github.fdh911.modules.ModuleGardenMacro
+import com.github.fdh911.modules.ConfigManager
 import com.github.fdh911.modules.ModuleList
 import com.github.fdh911.modules.macro.controls.ActionQueue
 import com.github.fdh911.modules.macro.controls.KeybindManager
@@ -28,23 +28,23 @@ object MySecondModClient : ClientModInitializer {
         // This should be removed at some point
         // Should make a system that allows
         // any module toggle to be bound to any key
-        KeybindRegistry.register("Toggle Garden Macro", GLFW.GLFW_KEY_K) {
-            ModuleGardenMacro.toggled = !ModuleGardenMacro.toggled
-        }
+//        KeybindRegistry.register("Toggle Garden Macro", GLFW.GLFW_KEY_K) {
+//            ModuleGardenMacro.toggled = !ModuleGardenMacro.toggled
+//        }
 
 		WorldRenderEvents.END.register {
 			ctx: WorldRenderContext ->
 			if(mc.player == null || mc.world == null) return@register
 
             val state = GLState2().apply { saveAll() }
-            ModuleList.renderUpdate(ctx)
+            ConfigManager.activeConfig.renderUpdate(ctx)
             state.restoreAll()
 		}
 
 		ClientTickEvents.START_CLIENT_TICK.register {
 			if(mc.player == null || mc.world == null) return@register
 
-            ModuleList.update()
+            ConfigManager.activeConfig.update()
 
 			KeybindRegistry.update()
             SkyblockState.update()
@@ -63,7 +63,8 @@ object MySecondModClient : ClientModInitializer {
 		UI.MCScreen.onRender {
 			val state = GLState2().apply { saveAll() }
             UI.render {
-                ModuleList.window.render()
+                ConfigManager.window.render()
+                ConfigManager.activeConfig.window.render()
             }
 			state.restoreAll()
 		}

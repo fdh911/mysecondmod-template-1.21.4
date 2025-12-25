@@ -3,20 +3,25 @@ package com.github.fdh911.modules
 import com.github.fdh911.ui.UIWindow
 import imgui.ImGui
 import imgui.type.ImBoolean
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 
-sealed class Module(val name: String) {
-    var toggled: Boolean
-        get() = imBooleanToggled.get()
+@Serializable
+sealed class Module(val name: String)
+{
+    @SerialName("toggled") var toggled = false
         set(value) {
+            field = value
             imBooleanToggled.set(value)
-            when(imBooleanToggled.get()) {
+            when(value) {
                 true -> onEnable()
                 false -> onDisable()
             }
         }
 
-    protected val imBooleanToggled = ImBoolean(false)
+    @Transient protected val imBooleanToggled = ImBoolean()
 
     abstract fun onUpdate()
 
@@ -27,7 +32,11 @@ sealed class Module(val name: String) {
     protected open fun UIWindow.setWindowContents() { }
 
     fun getWindow() = UIWindow(name) {
-        ImGui.checkbox("Enabled?", imBooleanToggled)
+        imBooleanToggled.set(toggled)
+
+        if(ImGui.checkbox("Enabled?", imBooleanToggled))
+            toggled = imBooleanToggled.get()
+
         setWindowContents()
     }
 }

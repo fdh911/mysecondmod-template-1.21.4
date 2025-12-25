@@ -6,14 +6,20 @@ import com.github.fdh911.utils.interpolatedPos
 import imgui.ImGui
 import imgui.type.ImBoolean
 import imgui.type.ImString
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.Entity
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-object ModuleEntityScanner : Module("Entity Scanner") {
-    private val savedEntityList = mutableListOf<Pair<Int, Entity>>()
+@Serializable
+@SerialName("entity_scanner")
+class ModuleEntityScanner : Module("Entity Scanner")
+{
+    @Transient private val savedEntityList = mutableListOf<Pair<Int, Entity>>()
 
     override fun onUpdate() {
         val player = MinecraftClient.getInstance().player
@@ -55,8 +61,8 @@ object ModuleEntityScanner : Module("Entity Scanner") {
         }
     }
 
-    private val closeColor = Vector4f(1.0f, 0.0f, 0.0f, 0.4f)
-    private val farColor = Vector4f(0.0f, 0.0f, 1.0f, 0.4f)
+    @Transient private val closeColor = Vector4f(1.0f, 0.0f, 0.0f, 0.4f)
+    @Transient private val farColor = Vector4f(0.0f, 0.0f, 1.0f, 0.4f)
 
     override fun onRenderUpdate(ctx: WorldRenderContext) {
         val renderer = TranslucentCuboids.Instanced()
@@ -84,17 +90,17 @@ object ModuleEntityScanner : Module("Entity Scanner") {
         )
     }
 
-    private val limitRadius = ImBoolean(false)
+    @Transient private val limitRadius = ImBoolean(false)
 
-    private var individualEntity: Entity? = null
+    @Transient private var individualEntity: Entity? = null
 
-    private val lowerBound = intArrayOf(1)
-    private val upperBound = intArrayOf(64)
+    @Transient private val lowerBound = intArrayOf(1)
+    @Transient private val upperBound = intArrayOf(64)
 
-    private val regexList = mutableListOf<Regex>()
-    private val textModifiersRegex = Regex("\u00A7.")
-    private val regexText = ImString()
-    private var selectedRegex = 0
+    @Transient private val regexList = mutableListOf<Regex>()
+    @Transient private val textModifiersRegex = Regex("\u00A7.")
+    @Transient private val regexText = ImString()
+    @Transient private var selectedRegex = 0
 
     override fun UIWindow.setWindowContents() {
         ImGui.separatorText("Radius")
@@ -133,7 +139,7 @@ object ModuleEntityScanner : Module("Entity Scanner") {
         }
     }
 
-    val detectedEntitiesWindow = UIWindow("Detected entities") {
+    @Transient val detectedEntitiesWindow = UIWindow("Detected entities") {
         ImGui.setNextItemWidth(-Float.MIN_VALUE)
         if(ImGui.beginListBox("##")) {
             for(i in savedEntityList.indices) {

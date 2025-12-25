@@ -17,6 +17,9 @@ import imgui.type.ImBoolean
 import imgui.type.ImInt
 import imgui.type.ImString
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.MinecraftClient
 import org.joml.Vector3d
@@ -28,17 +31,18 @@ import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
-@OptIn(DelicateCoroutinesApi::class)
-object ModuleGardenMacro: Module("Garden Macro")
+@Serializable
+@SerialName("garden_macro")
+class ModuleGardenMacro: Module("Garden Macro")
 {
-    private var nodeRenderer: TranslucentCuboids.Instanced? = null
-    private var nodesShouldUpdate = false
+    @SerialName("disable_outside_garden") var disableOutsideGarden = true
+    @SerialName("disable_sv_close") var disableOnServerClose = true
 
-    var currentScene: NodeScene? = null
-    var currentNode: Node? = null
+    @Transient var currentScene: NodeScene? = null
+    @Transient var currentNode: Node? = null
 
-    var disableOutsideGarden = false
-    var disableOnServerClose = false
+    @Transient private var nodeRenderer: TranslucentCuboids.Instanced? = null
+    @Transient private var nodesShouldUpdate = false
 
     override fun onDisable() {
         CursorManager.isMouseLocked = false
@@ -114,7 +118,7 @@ object ModuleGardenMacro: Module("Garden Macro")
         )
     }
 
-    override fun UIWindow.setWindowContents() = with(MainWindowContents) { windowContents() }
+    override fun UIWindow.setWindowContents() = with(MainWindowContents) { windowContents(this@ModuleGardenMacro) }
 
     fun onNodesChanged() {
         if(currentScene == null) {
@@ -151,7 +155,7 @@ object ModuleGardenMacro: Module("Garden Macro")
         private val zImInt = ImInt()
         private var actionWindow: UIWindow? = null
 
-        fun getWindow() = UIWindow("Edit node") {
+        fun getWindow(owner: ModuleGardenMacro) = UIWindow("Edit node") {
             if(node == null) {
                 actionWindow?.closeThisWindow()
                 closeThisWindow()
@@ -254,7 +258,7 @@ object ModuleGardenMacro: Module("Garden Macro")
             )
 
             if(n.pos != newPos)
-                nodesShouldUpdate = true
+                owner.nodesShouldUpdate = true
 
             n.name = nameImString.get()
             n.pos = newPos
@@ -262,7 +266,7 @@ object ModuleGardenMacro: Module("Garden Macro")
     }
 
     private object SceneLoadingWindow {
-        fun getWindow() = UIWindow("Load scene") {
+        fun getWindow(owner: ModuleGardenMacro) = UIWindow("Load scene") {
             val directory = File(".").listFiles()
 
             for(i in directory.indices) {
@@ -277,8 +281,8 @@ object ModuleGardenMacro: Module("Garden Macro")
 
                 ImGui.pushID(i)
                 if(ImGui.selectable(name)) {
-                    currentScene = NodeScene.loadFromFile(file)
-                    nodesShouldUpdate = true
+                    owner.currentScene = NodeScene.loadFromFile(file)
+                    owner.nodesShouldUpdate = true
                     NodeEditorWindow.node = null
                     closeThisWindow()
                 }
@@ -290,7 +294,7 @@ object ModuleGardenMacro: Module("Garden Macro")
     private object SceneCreationWindow {
         private val nameImString = ImString()
 
-        fun getWindow() = UIWindow("Create scene") {
+        fun getWindow(owner: ModuleGardenMacro) = UIWindow("Create scene") {
             ImGui.separatorText("Name")
             ImGui.setNextItemWidth(-Float.MIN_VALUE)
             ImGui.inputText("##_name", nameImString)
@@ -299,8 +303,8 @@ object ModuleGardenMacro: Module("Garden Macro")
             if(ImGui.button("Create")) {
                 val sceneName = nameImString.let { if(it.isEmpty) "Unnamed" else it.get() }
 
-                currentScene = NodeScene(sceneName)
-                nodesShouldUpdate = true
+                owner.currentScene = NodeScene(sceneName)
+                owner.nodesShouldUpdate = true
                 NodeEditorWindow.node = null
 
                 closeThisWindow()
@@ -312,33 +316,33 @@ object ModuleGardenMacro: Module("Garden Macro")
         private val disableOutsideGardenImBoolean = ImBoolean(false)
         private val disableOnServerCloseImBoolean = ImBoolean(false)
 
-        fun UIWindow.windowContents() {
+        fun UIWindow.windowContents(owner: ModuleGardenMacro) {
             ImGui.separatorText("Failsafes")
             ImGui.checkbox("Disable outside Garden", disableOutsideGardenImBoolean)
             ImGui.checkbox("Disable on server close", disableOnServerCloseImBoolean)
 
-            disableOutsideGarden = disableOutsideGardenImBoolean.get()
-            disableOnServerClose = disableOnServerCloseImBoolean.get()
+            owner.disableOutsideGarden = disableOutsideGardenImBoolean.get()
+            owner.disableOnServerClose = disableOnServerCloseImBoolean.get()
 
             ImGui.separatorText("Scene")
-            ImGui.text("Current: ${currentScene?.name ?: "None"}")
+            ImGui.text("Current: ${owner.currentScene?.name ?: "None"}")
 
             ImGui.setNextItemWidth(-Float.MIN_VALUE)
             if(ImGui.button("New scene"))
-                + SceneCreationWindow.getWindow()
+                + SceneCreationWindow.getWindow(owner)
 
             ImGui.sameLine()
             if(ImGui.button("Save scene"))
-                currentScene?.saveToFile()
+                owner.currentScene?.saveToFile()
 
             ImGui.sameLine()
             if(ImGui.button("Load scene"))
-                + SceneLoadingWindow.getWindow()
+                + SceneLoadingWindow.getWindow(owner)
 
-            if(currentScene == null)
+            if(owner.currentScene == null)
                 return
 
-            val scene = currentScene!!
+            val scene = owner.currentScene!!
             val nodes = scene.nodeList
 
             ImGui.separatorText("Nodes")
@@ -350,10 +354,10 @@ object ModuleGardenMacro: Module("Garden Macro")
                 val node = Node(pos, name)
 
                 nodes.add(node)
-                nodesShouldUpdate = true
+                owner.nodesShouldUpdate = true
 
                 NodeEditorWindow.node = node
-                + NodeEditorWindow.getWindow()
+                + NodeEditorWindow.getWindow(owner)
             }
 
             ImGui.setNextItemWidth(-Float.MIN_VALUE)
@@ -383,17 +387,17 @@ object ModuleGardenMacro: Module("Garden Macro")
                                 ?: "${clonedNode.name} 1"
 
                             nodes.add(i + 1, clonedNode)
-                            nodesShouldUpdate = true
+                            owner.nodesShouldUpdate = true
 
                             NodeEditorWindow.node = clonedNode
-                            + NodeEditorWindow.getWindow()
+                            + NodeEditorWindow.getWindow(owner)
                         }
                         ImGui.popStyleVar()
 
                         ImGui.sameLine()
                         if(ImGui.button(node.name)) {
                             NodeEditorWindow.node = node
-                            + NodeEditorWindow.getWindow()
+                            + NodeEditorWindow.getWindow(owner)
                         }
 
                         ImGui.popID()
@@ -403,7 +407,7 @@ object ModuleGardenMacro: Module("Garden Macro")
                         if(nodes[toRemove] == NodeEditorWindow.node)
                             NodeEditorWindow.node = null
                         nodes.removeAt(toRemove)
-                        nodesShouldUpdate = true
+                        owner.nodesShouldUpdate = true
                     }
 
                     ImGui.endListBox()
