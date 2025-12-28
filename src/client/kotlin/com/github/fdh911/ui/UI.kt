@@ -2,6 +2,7 @@ package com.github.fdh911.ui
 
 import com.github.fdh911.render.OverlayRender
 import com.github.fdh911.render.Unicodes
+import com.github.fdh911.render.opengl.GLDebug
 import com.github.fdh911.render.opengl.GLState2
 import imgui.*
 import imgui.gl3.ImGuiImplGl3
@@ -10,8 +11,10 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.Text
+import org.lwjgl.opengl.GL33.*
 
-object UI {
+object UI
+{
     init {
         ImGui.createContext()
     }
@@ -24,7 +27,7 @@ object UI {
         init(windowHandle, true)
     }
     private val gl3Impl = ImGuiImplGl3().apply {
-        init("#version 150")
+        init("#version 330 core")
     }
 
     val smallFont: ImFont
@@ -125,30 +128,23 @@ object UI {
         glfwImpl.newFrame()
         ImGui.newFrame()
 
-        val state = GLState2().apply {
-            saveProgramAndBuffers()
-            saveRaster()
-            saveDepth()
-            saveBlend()
-        }
+        // val state = GLState2().apply { saveAll() }
+
         OverlayRender.renderWithProgram(OverlayRender.sheetProgram)
-        state.apply {
-            restoreBlend()
-            restoreDepth()
-            restoreRaster()
-            restoreProgramAndBuffers()
-        }
 
         block()
 
         ImGui.render()
+
         gl3Impl.renderDrawData(ImGui.getDrawData())
+
+        // state.restoreAll()
     }
 
     object MCScreen : Screen(Text.empty()) {
         private val renderEvents = mutableListOf<() -> Unit>()
 
-        fun onRender(action: () -> Unit) = renderEvents.add(action)
+        fun addRenderAction(action: () -> Unit) = renderEvents.add(action)
 
         override fun init() {
             super.init()
@@ -163,8 +159,11 @@ object UI {
         }
 
         override fun render(context: DrawContext?, mouseX: Int, mouseY: Int, delta: Float) {
-            for(action in renderEvents)
-                action()
+            super.render(context, mouseX, mouseY, delta)
+
+            render {
+                for(action in renderEvents) action()
+            }
         }
 
         override fun shouldPause(): Boolean = false

@@ -2,13 +2,13 @@ package com.github.fdh911.utils
 
 import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.Entity
-import org.joml.Vector3f
+import net.minecraft.util.math.Vec3d
 
-fun Entity.interpolatedPos(): Vector3f {
-    val partialTick = MinecraftClient.getInstance().renderTickCounter!!.getTickDelta(true)
-    return Vector3f(
-        (prevX + (x - prevX) * partialTick).toFloat(),
-        (prevY + (y - prevY) * partialTick).toFloat(),
-        (prevZ + (z - prevZ) * partialTick).toFloat(),
+fun Entity.interpolatedPos(): Vec3d {
+    val partialTick = MinecraftClient.getInstance().renderTickCounter!!.getTickProgress(true)
+    return Vec3d(
+        lastX + (x - lastX) * partialTick,
+        lastY + (y - lastY) * partialTick,
+        lastZ + (z - lastZ) * partialTick,
     )
 }

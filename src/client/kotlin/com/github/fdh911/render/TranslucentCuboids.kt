@@ -5,7 +5,7 @@ import com.github.fdh911.render.opengl.GLVertexArray.AttribInstanced
 import com.github.fdh911.render.opengl.GLVertexArray.AttribRegular
 import com.github.fdh911.utils.interpolatedPos
 import com.github.fdh911.utils.mc
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -158,7 +158,7 @@ object TranslucentCuboids
             val projView = TranslucentUtils.getProjView(ctx)
             val state = TranslucentUtils.saveAndSetupState()
 
-            val playerPos = mc.player!!.interpolatedPos().add(0.0f, 1.0f, 0.0f)
+            val playerPos = mc.player!!.interpolatedPos().toVector3f().add(0.0f, 1.0f, 0.0f)
 
             program.apply {
                 bind()

@@ -1,7 +1,6 @@
 package com.github.fdh911
 
 import com.github.fdh911.modules.ConfigManager
-import com.github.fdh911.modules.ModuleList
 import com.github.fdh911.modules.macro.controls.ActionQueue
 import com.github.fdh911.modules.macro.controls.KeybindManager
 import com.github.fdh911.render.opengl.GLState2
@@ -12,8 +11,8 @@ import com.github.fdh911.utils.mc
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents
 import org.lwjgl.glfw.GLFW
 
 object MySecondModClient : ClientModInitializer
@@ -29,11 +28,12 @@ object MySecondModClient : ClientModInitializer
         // This should be removed at some point
         // Should make a system that allows
         // any module toggle to be bound to any key
-//        KeybindRegistry.register("Toggle Garden Macro", GLFW.GLFW_KEY_K) {
-//            ModuleGardenMacro.toggled = !ModuleGardenMacro.toggled
-//        }
+        KeybindRegistry.register("Toggle Garden Macro", GLFW.GLFW_KEY_K) {
+            // ModuleGardenMacro.toggled = !ModuleGardenMacro.toggled
+            ConfigManager.activeConfig?.entityScanner?.toggled = true
+        }
 
-		WorldRenderEvents.END.register {
+		WorldRenderEvents.END_MAIN.register {
 			ctx: WorldRenderContext ->
 			if(mc.player == null || mc.world == null) return@register
 
@@ -61,12 +61,9 @@ object MySecondModClient : ClientModInitializer
             ActionQueue.stop()
         }
 
-		UI.MCScreen.onRender {
-			val state = GLState2().apply { saveAll() }
-            UI.render {
-                ConfigManager.window.render()
-            }
-			state.restoreAll()
+		UI.MCScreen.addRenderAction {
+            ConfigManager.window.render()
 		}
+
 	}
 }

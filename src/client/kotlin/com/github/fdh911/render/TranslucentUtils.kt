@@ -1,16 +1,17 @@
 package com.github.fdh911.render
 
 import com.github.fdh911.render.opengl.GLState2
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
+import com.github.fdh911.utils.mc
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import org.joml.Matrix4f
 import org.lwjgl.opengl.GL32.*
 
 object TranslucentUtils {
     fun getProjView(ctx: WorldRenderContext): Matrix4f {
-        val cam = ctx.camera()
-        val proj = Matrix4f(ctx.projectionMatrix())
-        val view = Matrix4f(ctx.positionMatrix())
-            .translate(cam.pos.toVector3f().negate())
+        val cam = mc.gameRenderer.camera
+        val proj = mc.gameRenderer.getBasicProjectionMatrix(mc.options.fov.value.toFloat())
+        val view = Matrix4f(ctx.matrices().peek().positionMatrix)
+            .translate(cam.cameraPos.toVector3f().negate())
         return Matrix4f(proj).mul(view)
     }
 

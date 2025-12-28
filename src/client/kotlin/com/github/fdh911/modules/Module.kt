@@ -6,7 +6,7 @@ import imgui.type.ImBoolean
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 
 @Serializable
 sealed class Module(val name: String)
@@ -23,7 +23,7 @@ sealed class Module(val name: String)
 
     @Transient protected val imBooleanToggled = ImBoolean()
 
-    abstract fun onUpdate()
+    open fun onUpdate() { }
 
     open fun onEnable() { }
     open fun onDisable() { }

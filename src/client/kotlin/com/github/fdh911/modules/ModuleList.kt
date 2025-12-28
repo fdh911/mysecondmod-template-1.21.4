@@ -3,11 +3,10 @@ package com.github.fdh911.modules
 import com.github.fdh911.render.Unicodes
 import com.github.fdh911.ui.UIWindow
 import imgui.ImGui
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import java.io.File
 
 @Serializable
@@ -23,11 +22,18 @@ class ModuleList
         fun load(file: File) = json.decodeFromString<ModuleList>(file.readText())
     }
 
-    @SerialName("modules") private val modules = listOf(
-        ModuleGardenMacro(),
-        ModuleEntityScanner(),
-        ModuleNoPause(),
-    )
+    val gardenMacro = ModuleGardenMacro()
+    val entityScanner = ModuleEntityScanner()
+    val noPause = ModuleNoPause()
+    val freecam = ModuleFreecam()
+
+    val modules: List<Module>
+        get() = listOf(
+            gardenMacro,
+            entityScanner,
+            noPause,
+            freecam,
+        )
 
     @Transient val window = UIWindow("Modules", closeable = false) {
         for(module in modules) {

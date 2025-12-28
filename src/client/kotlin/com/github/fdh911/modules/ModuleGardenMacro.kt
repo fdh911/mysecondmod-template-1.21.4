@@ -16,11 +16,10 @@ import imgui.flag.ImGuiStyleVar
 import imgui.type.ImBoolean
 import imgui.type.ImInt
 import imgui.type.ImString
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import net.minecraft.client.MinecraftClient
 import org.joml.Vector3d
 import org.joml.Vector3f

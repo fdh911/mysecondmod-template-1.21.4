@@ -7,7 +7,7 @@ object KeybindRegistry {
     private val registered = mutableMapOf<KeyBinding, () -> Unit>()
 
     fun register(name: String, key: Int, action: () -> Unit) {
-        val kb = KeyBinding(name, key, "MySecondMod")
+        val kb = KeyBinding(name, key, KeyBinding.Category.MISC)
         KeyBindingHelper.registerKeyBinding(kb)
         registered[kb] = action
     }

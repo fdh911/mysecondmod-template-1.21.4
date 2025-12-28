@@ -13,7 +13,7 @@ import net.minecraft.client.MinecraftClient
 @SerialName("Key")
 class NodeActionKey(
     private var type: Type = Type.HOLD,
-    private var kbTranslationKey: String = MinecraftClient.getInstance().options.forwardKey.translationKey,
+    private var kbTranslationKey: String = MinecraftClient.getInstance().options.forwardKey.id,
 ): NodeAction()
 {
     enum class Type(val string: String) {
@@ -60,7 +60,7 @@ class NodeActionKey(
                 val keyArray = MinecraftClient.getInstance().options.allKeys
                 for(i in keyArray.indices) {
                     ImGui.pushID(i)
-                    val key = keyArray[i].translationKey
+                    val key = keyArray[i].id
                     if(ImGui.selectable(key.translate()))
                         action.kbTranslationKey = key
                     ImGui.popID()

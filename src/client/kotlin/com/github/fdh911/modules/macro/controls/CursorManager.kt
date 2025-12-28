@@ -55,7 +55,7 @@ object CursorManager
             precision = 1.0f,
             maxError = 30.0f
         ) {
-            point -> player.rotate(point.x, point.y)
+            point -> player.rotate(point.x, false, point.y, false)
         }
     }
 

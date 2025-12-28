@@ -6,7 +6,7 @@ import com.github.fdh911.render.opengl.GLState2
 import com.github.fdh911.render.opengl.GLVertexArray
 import com.github.fdh911.render.opengl.GLVertexArray.AttribRegular
 import com.github.fdh911.render.opengl.GLVertexBuffer
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL32.GL_LINE_STRIP

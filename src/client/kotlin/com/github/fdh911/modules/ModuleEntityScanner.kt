@@ -1,19 +1,27 @@
 package com.github.fdh911.modules
 
-import com.github.fdh911.render.TranslucentCuboids
 import com.github.fdh911.ui.UIWindow
+import com.github.fdh911.utils.extPos
 import com.github.fdh911.utils.interpolatedPos
+import com.mojang.blaze3d.pipeline.RenderPipeline
+import com.mojang.blaze3d.platform.DepthTestFunction
 import imgui.ImGui
 import imgui.type.ImBoolean
 import imgui.type.ImString
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gl.RenderPipelines
+import net.minecraft.client.render.LayeringTransform
+import net.minecraft.client.render.RenderLayer
+import net.minecraft.client.render.RenderLayers
+import net.minecraft.client.render.RenderSetup
+import net.minecraft.client.render.VertexConsumer
+import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.entity.Entity
 import org.joml.Vector3f
-import org.joml.Vector4f
 
 @Serializable
 @SerialName("entity_scanner")
@@ -61,33 +69,67 @@ class ModuleEntityScanner : Module("Entity Scanner")
         }
     }
 
-    @Transient private val closeColor = Vector4f(1.0f, 0.0f, 0.0f, 0.4f)
-    @Transient private val farColor = Vector4f(0.0f, 0.0f, 1.0f, 0.4f)
-
     override fun onRenderUpdate(ctx: WorldRenderContext) {
-        val renderer = TranslucentCuboids.Instanced()
-        renderer.begin(savedEntityList.size)
+        for((_, entity) in savedEntityList) {
+            val consumer = ctx.consumers().getBuffer(renderLayer)
 
-        for((dist, entity) in savedEntityList) {
+            val matrixStack = ctx.matrices()
+            matrixStack.push()
+
+            val cameraCorrect = ctx.gameRenderer().camera.cameraPos.negate()
+            matrixStack.translate(cameraCorrect)
+
             val aabb = entity.boundingBox
-            val delta = entity.interpolatedPos() - entity.pos.toVector3f()
-            val lerp = (dist - lowerBound[0]).toFloat() / (upperBound[0] - lowerBound[0] + 1)
-            val color = Vector4f(closeColor)
-                .add(Vector4f(farColor).sub(closeColor).mul(lerp))
 
-            renderer.addRect(
-                pos = aabb.minPos.toVector3f() + delta,
-                scale = aabb.maxPos.toVector3f() - aabb.minPos.toVector3f(),
-                color = color
-            )
+            val delta = entity.interpolatedPos().subtract(entity.extPos)
+            val boxCorner = aabb.minPos.add(delta)
+            matrixStack.translate(boxCorner)
+
+            val boxScale = aabb.maxPos.subtract(aabb.minPos).toVector3f()
+            matrixStack.scale(boxScale.x, boxScale.y, boxScale.z)
+
+            val mat = matrixStack.peek()
+
+            makeBox(consumer, mat)
+
+            matrixStack.pop()
         }
+    }
 
-        renderer.finish()
-        renderer.render(
-            ctx = ctx,
-            drawSolids = true,
-            drawOutlines = true,
-        )
+    @Transient private val renderLayer = RenderLayer.of(
+        "fdh911_esp",
+        RenderSetup.builder(
+            RenderPipeline.builder(RenderPipelines.POSITION_COLOR_SNIPPET)
+                .withLocation("pipeline/debug_filled_box")
+                .withCull(true)
+                .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+                .build()
+        ).build()
+    )
+
+    @Transient private val vertices = arrayOf(
+        Vector3f(0.0f, 0.0f, 0.0f),
+        Vector3f(1.0f, 0.0f, 0.0f),
+        Vector3f(1.0f, 0.0f, 1.0f),
+        Vector3f(0.0f, 0.0f, 1.0f),
+        Vector3f(0.0f, 1.0f, 0.0f),
+        Vector3f(1.0f, 1.0f, 0.0f),
+        Vector3f(1.0f, 1.0f, 1.0f),
+        Vector3f(0.0f, 1.0f, 1.0f)
+    )
+
+    @Transient private val faceIndices = intArrayOf(
+        4, 0, 3, 7, // -X
+        0, 1, 2, 3, // -Y
+        0, 4, 5, 1, // -Z
+        5, 6, 2, 1, // +X
+        4, 7, 6, 5, // +Y
+        6, 7, 3, 2, // +Z
+    )
+
+    private fun makeBox(consumer: VertexConsumer, mat: MatrixStack.Entry) {
+        for(i in faceIndices)
+            consumer.vertex(mat, vertices[i]).color(1.0f, 0.0f, 0.0f, 0.3f)
     }
 
     @Transient private val limitRadius = ImBoolean(false)
